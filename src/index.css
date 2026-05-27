@@ -1,0 +1,96 @@
+/**
+ * 全局样式
+ * Design Spec: Section 3.1, 3.2
+ */
+
+:root {
+  --bg: #f5f6f5;
+  --surface: #ffffff;
+  --sidebar: #f2f4f2;
+  --line: #e6e9e6;
+  --text: #171a17;
+  --muted: #737b73;
+  --green: #257d60;
+  --green-2: #94c6b4;
+  --green-3: #d9eee6;
+  --pink: #eb4b86;
+  --pink-2: #fde3ed;
+  --blue: #3449d8;
+  --blue-2: #e5e9ff;
+  --orange: #df8733;
+  --orange-2: #fdebdc;
+  --lime: #98bd29;
+  --yellow: #f5bc38;
+  --shadow: 0 10px 28px rgba(28, 40, 34, .06);
+  --radius: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  min-width: 1360px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: 0;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 500;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Card title bar with colored left bar (pseudo-element) */
+.card-title-bar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+.card-title-bar::before {
+  content: "";
+  width: 4px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--green);
+  flex-shrink: 0;
+}
+.card-title-bar.pink::before { background: var(--pink); }
+.card-title-bar.blue::before { background: var(--blue); }
+.card-title-bar.orange::before { background: var(--orange); }
+
+/* Active click glow feedback */
+.active-glow {
+  outline: 2px solid rgba(37, 125, 96, .38);
+  outline-offset: 2px;
+  transition: .18s ease;
+}
+
+/* Filtered state indicator */
+.is-filtered {
+  outline: 2px solid rgba(37, 125, 96, .38);
+  outline-offset: 2px;
+}

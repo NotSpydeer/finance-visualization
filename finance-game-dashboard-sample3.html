@@ -1,0 +1,3177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>游戏公司财务费用分析平台</title>
+  <style>
+    :root {
+      --bg: #f5f6f5;
+      --surface: #ffffff;
+      --sidebar: #f2f4f2;
+      --line: #e6e9e6;
+      --text: #171a17;
+      --muted: #737b73;
+      --green: #257d60;
+      --green-2: #94c6b4;
+      --green-3: #d9eee6;
+      --pink: #eb4b86;
+      --pink-2: #fde3ed;
+      --blue: #3449d8;
+      --blue-2: #e5e9ff;
+      --orange: #df8733;
+      --orange-2: #fdebdc;
+      --lime: #98bd29;
+      --yellow: #f5bc38;
+      --shadow: 0 10px 28px rgba(28, 40, 34, .06);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 1360px;
+      color: var(--text);
+      background: var(--bg);
+      font-family: "Inter", "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 200px minmax(0, 1fr) 292px;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      padding: 14px;
+      border-right: 1px solid var(--line);
+      background: var(--sidebar);
+    }
+
+    .profile {
+      display: grid;
+      grid-template-columns: 34px 1fr 22px;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--text);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .profile b {
+      display: block;
+      font-size: 13px;
+    }
+
+    .profile span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .dots {
+      color: var(--muted);
+      text-align: right;
+      font-weight: 800;
+    }
+
+    .nav {
+      display: grid;
+      gap: 4px;
+    }
+
+    .nav button,
+    .utility button {
+      display: grid;
+      grid-template-columns: 22px 1fr;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      border: 0;
+      border-radius: 4px;
+      color: #39423c;
+      background: transparent;
+      text-align: left;
+      font-size: 13px;
+      cursor: pointer;
+      transition: .18s ease;
+    }
+
+    .nav button.active,
+    .nav button:hover {
+      color: var(--green);
+      background: var(--green-3);
+    }
+
+    .icon {
+      width: 15px;
+      height: 15px;
+      margin-left: 4px;
+      border: 1.8px solid currentColor;
+      border-radius: 4px;
+    }
+
+    .icon.circle {
+      border-radius: 50%;
+    }
+
+    .icon.bolt {
+      border-radius: 2px;
+      transform: skewX(-10deg);
+    }
+
+    .utility {
+      margin-top: auto;
+      display: grid;
+      gap: 4px;
+    }
+
+    .mode-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 4px 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .toggle {
+      width: 34px;
+      height: 18px;
+      padding: 2px;
+      border-radius: 999px;
+      background: #dde5df;
+    }
+
+    .toggle i {
+      display: block;
+      width: 14px;
+      height: 14px;
+      margin-left: 14px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .main {
+      min-width: 0;
+    }
+
+    .right-panel {
+      min-height: 100vh;
+      padding: 14px;
+      border-left: 1px solid var(--line);
+      background: #fafbfa;
+    }
+
+    .rail-top {
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .manager {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 8px;
+      align-items: center;
+      margin-left: 4px;
+    }
+
+    .manager b {
+      display: block;
+      font-size: 12px;
+    }
+
+    .manager span {
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .calendar-card,
+    .side-card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .calendar-card {
+      margin-bottom: 12px;
+    }
+
+    .calendar-head,
+    .side-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px 4px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .calendar-grid b {
+      font-size: 10px;
+      color: #87918b;
+    }
+
+    .day {
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: .18s ease;
+    }
+
+    .day:hover {
+      color: var(--green);
+      background: var(--green-3);
+    }
+
+    .day.active {
+      color: #fff;
+      background: var(--green);
+    }
+
+    .day.in-range {
+      border-radius: 8px;
+      background: #e4f2eb;
+      color: var(--green);
+      font-weight: 900;
+    }
+
+    .day.warn {
+      color: #a15f18;
+      background: transparent;
+      box-shadow: inset 0 0 0 1px rgba(209, 129, 56, .58);
+      font-weight: 800;
+    }
+
+    .day.active.warn {
+      color: #fff;
+      background: var(--green);
+      box-shadow: none;
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 10px 8px;
+      align-items: start;
+    }
+
+    .timeline-time {
+      padding-top: 12px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .timeline-card {
+      min-height: 64px;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfb;
+      cursor: pointer;
+      transition: .18s ease;
+    }
+
+    .timeline-card:hover {
+      transform: translateY(-1px);
+      border-color: #c7ded5;
+      background: var(--green-3);
+    }
+
+    .timeline-card.mark {
+      border-color: #c7ded5;
+      background: var(--green-3);
+    }
+
+    .timeline-card b {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+    }
+
+    .timeline-card span {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .rail-button {
+      width: 100%;
+      height: 34px;
+      margin-top: 12px;
+      border: 0;
+      border-radius: 6px;
+      color: #fff;
+      background: var(--text);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .topbar {
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .tabs {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      height: 100%;
+    }
+
+    .tab {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      color: var(--text);
+      border-color: var(--text);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .round {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .content {
+      padding: 20px 18px 28px;
+    }
+
+    .head-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .section-heading::before {
+      content: "";
+      width: 4px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--pink);
+    }
+
+    .filters {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .select-btn,
+    .export-btn {
+      height: 34px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--surface);
+      color: #333;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .metric-card {
+      min-height: 108px;
+      padding: 16px;
+      cursor: pointer;
+    }
+
+    .metric-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .metric-icon {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .metric-icon.blue {
+      color: var(--blue);
+      background: var(--blue-2);
+    }
+
+    .metric-icon.pink {
+      color: var(--pink);
+      background: var(--pink-2);
+    }
+
+    .metric-icon.green {
+      color: var(--green);
+      background: var(--green-3);
+    }
+
+    .metric-icon.orange {
+      color: var(--orange);
+      background: var(--orange-2);
+    }
+
+    .more {
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .metric-value {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .metric-value b {
+      font-size: 25px;
+      letter-spacing: 0;
+    }
+
+    .delta {
+      padding: 3px 6px;
+      border-radius: 4px;
+      color: var(--green);
+      background: var(--green-3);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .delta.down {
+      color: var(--pink);
+      background: var(--pink-2);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.08fr .92fr;
+      gap: 12px;
+      margin-bottom: 12px;
+      align-items: stretch;
+      min-height: 386px;
+    }
+
+    .dashboard-side {
+      display: grid;
+      grid-template-rows: 148px minmax(0, 1fr);
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px 6px;
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .card-title::before {
+      content: "";
+      width: 4px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--green);
+    }
+
+    .card-title.pink::before {
+      background: var(--pink);
+    }
+
+    .card-title.blue::before {
+      background: var(--blue);
+    }
+
+    .card-title.orange::before {
+      background: var(--orange);
+    }
+
+    .small-select {
+      height: 28px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .chart-body {
+      padding: 10px 16px 16px;
+    }
+
+    .analytics {
+      min-height: 386px;
+      height: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .analytics .chart-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .trend-stage {
+      position: relative;
+      flex: 1;
+      min-height: 296px;
+      height: auto;
+      padding-left: 38px;
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(to bottom, transparent 0 24%, var(--line) 24.5%, transparent 25%),
+        linear-gradient(to bottom, transparent 0 49%, var(--line) 49.5%, transparent 50%),
+        linear-gradient(to bottom, transparent 0 74%, var(--line) 74.5%, transparent 75%);
+    }
+
+    .axis-labels {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .bar-rhythm {
+      position: absolute;
+      left: 44px;
+      right: 8px;
+      bottom: 0;
+      display: flex;
+      align-items: end;
+      gap: 4px;
+      height: calc(100% - 24px);
+    }
+
+    .rhythm-bar {
+      flex: 1;
+      min-width: 3px;
+      border-radius: 3px 3px 0 0;
+      background: rgba(37, 125, 96, .22);
+      animation: rise .8s ease both;
+    }
+
+    @keyframes rise {
+      from {
+        transform: scaleY(.2);
+        transform-origin: bottom;
+      }
+      to {
+        transform: scaleY(1);
+        transform-origin: bottom;
+      }
+    }
+
+    .trend-line {
+      position: absolute;
+      inset: 0 8px 0 38px;
+      pointer-events: none;
+    }
+
+    .trend-line svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .trend-line path.main {
+      fill: none;
+      stroke: var(--green);
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .trend-line path.ghost {
+      fill: none;
+      stroke: #d9dcda;
+      stroke-width: 2;
+    }
+
+    .tooltip-dot {
+      position: absolute;
+      left: 54%;
+      top: 42%;
+      width: 12px;
+      height: 12px;
+      border: 3px solid var(--surface);
+      border-radius: 50%;
+      background: var(--pink);
+      box-shadow: 0 0 0 2px var(--pink);
+    }
+
+    .tooltip-card {
+      position: absolute;
+      left: calc(54% - 42px);
+      top: calc(42% - 62px);
+      padding: 7px 9px;
+      border-radius: 6px;
+      background: var(--surface);
+      box-shadow: 0 8px 22px rgba(0,0,0,.12);
+      font-size: 11px;
+    }
+
+    .tooltip-card b {
+      display: block;
+      font-size: 14px;
+    }
+
+    .tooltip-dot.secondary {
+      left: 66%;
+      top: 33%;
+      background: var(--surface);
+      box-shadow: 0 0 0 3px var(--orange), 0 8px 18px rgba(223,135,51,.2);
+    }
+
+    .tooltip-card.secondary {
+      left: calc(66% - 42px);
+      top: calc(33% - 62px);
+    }
+
+    .quarters {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      margin: 8px 0 0 38px;
+      color: var(--muted);
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .plan-card {
+      min-height: 0;
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .plan-card .chart-body {
+      flex: 1;
+      display: grid;
+      align-content: center;
+    }
+
+    .plan-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: end;
+      margin: 4px 0 12px;
+    }
+
+    .percent {
+      font-size: 28px;
+      font-weight: 900;
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .split-bar {
+      display: grid;
+      grid-template-columns: 75% 25%;
+      height: 14px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #edf0ed;
+    }
+
+    .split-bar span:first-child {
+      background: var(--green);
+    }
+
+    .split-bar span:last-child {
+      background: var(--orange);
+    }
+
+    .monthly-card {
+      min-height: 0;
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .monthly-card .chart-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .monthly-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .monthly-summary span {
+      display: grid;
+      gap: 2px;
+      padding: 7px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcfb;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .monthly-summary b {
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .monthly-stage {
+      position: relative;
+      flex: 1;
+      min-height: 100px;
+      height: auto;
+      padding: 8px 0 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .monthly-bars {
+      height: 100%;
+      display: flex;
+      align-items: end;
+      gap: 5px;
+    }
+
+    .month-bar {
+      flex: 1;
+      min-width: 4px;
+      border-radius: 4px 4px 0 0;
+      background: rgba(37, 125, 96, .24);
+      animation: rise .8s ease both;
+    }
+
+    .month-bar.hot {
+      background: var(--green);
+    }
+
+    .month-bar.warn {
+      background: var(--orange);
+    }
+
+    .month-labels {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      color: var(--muted);
+      font-size: 10px;
+      text-align: center;
+    }
+
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr .48fr .48fr;
+      gap: 12px;
+    }
+
+    .semi-chart {
+      height: 188px;
+      position: relative;
+      display: grid;
+      place-items: center;
+      padding-top: 8px;
+    }
+
+    .arc {
+      width: 270px;
+      height: 135px;
+      border-radius: 270px 270px 0 0;
+      background:
+        conic-gradient(from 270deg at 50% 100%,
+          var(--blue) 0 31%,
+          transparent 31% 34%,
+          var(--pink) 34% 64%,
+          transparent 64% 67%,
+          var(--lime) 67% 86%,
+          transparent 86% 89%,
+          var(--yellow) 89% 100%);
+      mask: radial-gradient(circle at 50% 100%, transparent 0 42%, #000 43%);
+    }
+
+    .arc-center {
+      position: absolute;
+      top: 78px;
+      text-align: center;
+    }
+
+    .arc-center b {
+      display: block;
+      font-size: 20px;
+    }
+
+    .arc-center strong {
+      display: block;
+      margin-top: 2px;
+    }
+
+    .dist-legend {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 2px;
+      font-size: 12px;
+    }
+
+    .legend-item {
+      display: grid;
+      gap: 5px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcfb;
+      min-width: 0;
+    }
+
+    .legend-item .legend-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .legend-item .legend-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 900;
+    }
+
+    .legend-item b {
+      display: inline;
+      margin-top: 0;
+      font-size: 14px;
+    }
+
+    .legend-share {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .legend-share i {
+      height: 5px;
+      border-radius: 99px;
+      background: #edf3f0;
+      overflow: hidden;
+    }
+
+    .legend-share i::before {
+      content: "";
+      display: block;
+      width: var(--share, 0%);
+      height: 100%;
+      border-radius: inherit;
+      background: var(--legend-color, var(--green));
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      display: inline-block;
+      margin-right: 5px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .country-list {
+      display: grid;
+      gap: 11px;
+      padding: 10px 16px 16px;
+      font-size: 13px;
+    }
+
+    .country-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+    }
+
+    .change {
+      padding: 4px 7px;
+      border-radius: 4px;
+      color: var(--green);
+      background: var(--green-3);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .change.down {
+      color: var(--pink);
+      background: var(--pink-2);
+    }
+
+    .heatmap {
+      display: grid;
+      grid-template-columns: 42px repeat(7, 1fr);
+      gap: 5px;
+      padding: 10px 16px 16px;
+      font-size: 11px;
+      color: var(--muted);
+      align-items: center;
+    }
+
+    .heat-cell {
+      height: 21px;
+      border-radius: 3px;
+      background: #d7ebe3;
+    }
+
+    .h1 { background: #c6e1d7; }
+    .h2 { background: #8fc9b5; }
+    .h3 { background: #57a487; }
+    .h4 { background: #257d60; }
+
+    .matrix-card {
+      margin-top: 12px;
+    }
+
+    .filter-panel {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr)) auto auto;
+      gap: 8px;
+      align-items: end;
+      margin: -8px 0 14px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .filter-control {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .filter-control select {
+      width: 100%;
+      height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: #fbfcfb;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .action-btn {
+      height: 32px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: #fbfcfb;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: .18s ease;
+    }
+
+    .action-btn.primary,
+    .action-btn:hover {
+      border-color: var(--green);
+      color: #fff;
+      background: var(--green);
+    }
+
+    .filter-trail,
+    .saved-views {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 26px;
+      align-items: center;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 24px;
+      padding: 0 8px;
+      border: 1px solid #cfe2d9;
+      border-radius: 999px;
+      background: var(--green-3);
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .chip.neutral {
+      border-color: var(--line);
+      background: #fbfcfb;
+      color: var(--muted);
+      cursor: default;
+    }
+
+    .chip.saved {
+      border-color: #d7dce8;
+      background: #f5f7fb;
+      color: #364256;
+      cursor: pointer;
+    }
+
+    .drill-grid {
+      display: grid;
+      grid-template-columns: .9fr 1.1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .drill-list {
+      display: grid;
+      gap: 8px;
+      padding: 10px 16px 16px;
+    }
+
+    .drill-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcfb;
+      cursor: pointer;
+      transition: .18s ease;
+    }
+
+    .drill-item:hover,
+    .drill-item.active {
+      border-color: #c7ded5;
+      background: var(--green-3);
+      color: var(--green);
+    }
+
+    .drill-item small {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .dept-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      padding: 10px 16px 8px;
+    }
+
+    .dept-summary span {
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcfb;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .dept-summary b {
+      display: block;
+      color: var(--text);
+      font-size: 15px;
+    }
+
+    .dept-trend {
+      height: 76px;
+      display: flex;
+      align-items: end;
+      gap: 6px;
+      padding: 0 16px 10px;
+    }
+
+    .dept-trend span {
+      flex: 1;
+      min-width: 5px;
+      border-radius: 4px 4px 0 0;
+      background: rgba(37, 125, 96, .24);
+    }
+
+    .clickable,
+    .legend-item,
+    .country-row,
+    .matrix-table tbody tr,
+    .rhythm-bar,
+    .month-bar {
+      cursor: pointer;
+    }
+
+    .is-filtered {
+      outline: 2px solid rgba(37,125,96,.38);
+      outline-offset: 2px;
+    }
+
+    .calendar-switch {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .calendar-switch button {
+      height: 28px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: #fbfcfb;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .calendar-switch button.active,
+    .calendar-switch button:hover {
+      border-color: var(--green);
+      color: #fff;
+      background: var(--green);
+    }
+
+    .calendar-scope {
+      display: grid;
+      gap: 4px;
+      padding: 9px 10px;
+      margin: -2px 0 10px;
+      border: 1px solid rgba(37, 125, 96, .16);
+      border-radius: 7px;
+      background: #f7fbf8;
+    }
+
+    .calendar-scope b {
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.2;
+    }
+
+    .calendar-scope span {
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.45;
+    }
+
+    .calendar-picker {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .calendar-picker select {
+      height: 30px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: #fbfcfb;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .calendar-range {
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin: -4px 0 12px;
+    }
+
+    .calendar-range.open {
+      display: grid;
+    }
+
+    .calendar-range input,
+    .calendar-range button {
+      height: 30px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: #fbfcfb;
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .calendar-range button {
+      grid-column: 1 / -1;
+      background: var(--text);
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .calendar-range input:focus,
+    .calendar-range button:hover {
+      border-color: var(--green);
+      outline: none;
+    }
+
+    .calendar-month-board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .calendar-month-board button {
+      height: 30px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: #fbfcfb;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .calendar-month-board button.active,
+    .calendar-month-board button:hover {
+      border-color: var(--green);
+      color: #fff;
+      background: var(--green);
+    }
+
+    .trend-grain {
+      display: grid;
+      grid-template-columns: repeat(4, auto);
+      gap: 5px;
+      align-items: center;
+    }
+
+    .trend-grain button {
+      height: 26px;
+      padding: 0 9px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: #fbfcfb;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .trend-grain button.active,
+    .trend-grain button:hover {
+      border-color: var(--green);
+      background: var(--green);
+      color: #fff;
+    }
+
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .matrix-table th,
+    .matrix-table td {
+      padding: 9px 10px;
+      border-top: 1px solid var(--line);
+      text-align: left;
+    }
+
+    .matrix-table th {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .matrix-table td.num {
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .status {
+      padding: 4px 7px;
+      border-radius: 4px;
+      background: var(--green-3);
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .status.warn {
+      background: var(--pink-2);
+      color: var(--pink);
+    }
+
+    .active-glow {
+      outline: 2px solid rgba(37,125,96,.42);
+      outline-offset: 2px;
+    }
+
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background: rgba(16, 24, 20, .18);
+      opacity: 0;
+      pointer-events: none;
+      transition: .18s ease;
+    }
+
+    .drawer-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      z-index: 21;
+      width: 388px;
+      height: 100vh;
+      padding: 18px;
+      border-left: 1px solid var(--line);
+      background: var(--surface);
+      box-shadow: -20px 0 48px rgba(21, 31, 27, .14);
+      transform: translateX(102%);
+      transition: .22s ease;
+      overflow: auto;
+    }
+
+    .drawer.open {
+      transform: translateX(0);
+    }
+
+    .drawer-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .drawer-head h2 {
+      margin: 0 0 4px;
+      font-size: 18px;
+    }
+
+    .drawer-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .drawer-close {
+      width: 30px;
+      height: 30px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: #fbfcfb;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .drawer-kpis {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .drawer-kpis span {
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcfb;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .drawer-kpis b {
+      display: block;
+      color: var(--text);
+      font-size: 15px;
+    }
+
+    .drawer-section {
+      margin-top: 14px;
+    }
+
+    .drawer-section h3 {
+      margin: 0 0 8px;
+      font-size: 13px;
+    }
+
+    .reason-list,
+    .top-list {
+      display: grid;
+      gap: 7px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .reason-list li,
+    .top-list li {
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfcfb;
+      color: #35413c;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    /* Chart polish pass inspired by sample3: softer grids, denser bars, clearer focus states. */
+    .analytics,
+    .plan-card,
+    .monthly-card,
+    .bottom-grid .card {
+      overflow: hidden;
+    }
+
+    .trend-stage {
+      border-bottom-color: #dfe7e3;
+      background:
+        linear-gradient(to bottom, rgba(232, 238, 235, .75) 0 1px, transparent 1px 25%),
+        linear-gradient(to bottom, transparent 0 24%, rgba(232, 238, 235, .9) 24.5%, transparent 25%),
+        linear-gradient(to bottom, transparent 0 49%, rgba(232, 238, 235, .9) 49.5%, transparent 50%),
+        linear-gradient(to bottom, transparent 0 74%, rgba(232, 238, 235, .9) 74.5%, transparent 75%),
+        linear-gradient(180deg, rgba(37,125,96,.035), transparent 72%);
+    }
+
+    .rhythm-bar {
+      border-radius: 8px 8px 0 0;
+      background: linear-gradient(180deg, rgba(37,125,96,.34), rgba(37,125,96,.12));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.65);
+      transition: .18s ease;
+    }
+
+    .rhythm-bar:hover,
+    .rhythm-bar.is-filtered {
+      background: linear-gradient(180deg, rgba(37,125,96,.78), rgba(37,125,96,.3));
+      transform: translateY(-2px);
+    }
+
+    .rhythm-bar.selected-day {
+      background: linear-gradient(180deg, #d77b32, #efb77e);
+      box-shadow: 0 0 0 2px rgba(215,123,50,.18);
+    }
+
+    .trend-line path.main {
+      stroke-width: 3.2;
+      filter: drop-shadow(0 7px 8px rgba(37,125,96,.18));
+    }
+
+    .trend-line path.ghost {
+      stroke: #d7dfda;
+      stroke-width: 2.2;
+    }
+
+    .tooltip-dot {
+      width: 13px;
+      height: 13px;
+      background: var(--surface);
+      box-shadow: 0 0 0 3px var(--green), 0 8px 18px rgba(37,125,96,.24);
+    }
+
+    .tooltip-card {
+      border: 1px solid #e4ebe7;
+      box-shadow: 0 12px 28px rgba(31, 42, 38, .12);
+    }
+
+    .split-bar {
+      height: 16px;
+      background: #edf3f0;
+      box-shadow: inset 0 0 0 1px rgba(37,125,96,.08);
+    }
+
+    .split-bar span:first-child {
+      background: linear-gradient(90deg, #1f7a5d, #43a382);
+    }
+
+    .split-bar span:last-child {
+      background: linear-gradient(90deg, #dc7b31, #eba768);
+    }
+
+    .monthly-stage {
+      background:
+        linear-gradient(to bottom, transparent 0 49%, rgba(232,238,235,.8) 50%, transparent 51%),
+        linear-gradient(180deg, rgba(37,125,96,.035), transparent);
+    }
+
+    .month-bar {
+      border-radius: 7px 7px 0 0;
+      background: linear-gradient(180deg, rgba(37,125,96,.32), rgba(37,125,96,.13));
+      transition: .18s ease;
+    }
+
+    .month-bar.hot {
+      background: linear-gradient(180deg, #1f7a5d, #65b499);
+    }
+
+    .month-bar.warn {
+      background: linear-gradient(180deg, #d77b32, #efb77e);
+    }
+
+    .month-bar:hover,
+    .month-bar.is-filtered {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(37,125,96,.15);
+    }
+
+    .arc {
+      width: 282px;
+      height: 141px;
+      border-radius: 282px 282px 0 0;
+      background:
+        conic-gradient(from 270deg at 50% 100%,
+          #3449d8 0 24%,
+          transparent 24% 28%,
+          #eb4b86 28% 58%,
+          transparent 58% 62%,
+          #98bd29 62% 82%,
+          transparent 82% 86%,
+          #f5bc38 86% 100%);
+      mask: radial-gradient(circle at 50% 100%, transparent 0 58%, #000 59%);
+      filter: drop-shadow(0 12px 18px rgba(31,42,38,.08));
+    }
+
+    .arc::after {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border-radius: inherit;
+      background: linear-gradient(180deg, rgba(255,255,255,.34), transparent);
+      pointer-events: none;
+    }
+
+    .arc-center {
+      top: 80px;
+    }
+
+    .heatmap {
+      gap: 6px;
+    }
+
+    .heat-cell {
+      height: 23px;
+      border-radius: 5px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.5);
+    }
+
+    .h1 { background: #dcece6; }
+    .h2 { background: #a8d6c5; }
+    .h3 { background: #5faf91; }
+    .h4 { background: #20785c; }
+
+    @media (max-width: 1320px) {
+      body {
+        min-width: 1280px;
+      }
+
+      .app {
+        grid-template-columns: 186px minmax(0, 1fr) 260px;
+      }
+
+      .metric-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .right-panel {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="profile">
+        <div class="avatar">GF</div>
+        <div><b>游戏财务分析</b><span>本地表格可视化</span></div>
+        <div class="dots">⋮</div>
+      </div>
+
+      <nav class="nav">
+        <button class="active"><span class="icon"></span>总览</button>
+        <button><span class="icon circle"></span>导入记录</button>
+        <button><span class="icon bolt"></span>月度结账</button>
+        <button><span class="icon circle"></span>项目分析</button>
+        <button><span class="icon circle"></span>费用治理</button>
+        <button><span class="icon"></span>数据校验</button>
+        <button><span class="icon circle"></span>设置</button>
+      </nav>
+
+      <div class="utility">
+        <div class="mode-row"><span>浅色模式</span><span class="toggle"><i></i></span></div>
+        <button><span class="icon circle"></span>帮助中心</button>
+        <button><span class="icon"></span>退出</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="tabs">
+          <div class="tab active">总览</div>
+          <div class="tab">报表</div>
+          <div class="tab">费用实验室</div>
+          <div class="tab">数据质量</div>
+        </div>
+        <div class="top-actions">
+          <button class="round">●</button>
+          <button class="round">⚙</button>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="head-row">
+          <div class="section-heading">Overview</div>
+          <div class="filters">
+            <button class="select-btn">📅 2025-01 - 2026-04</button>
+            <button class="select-btn">全部主体</button>
+            <button class="export-btn">导出 ↗</button>
+          </div>
+        </div>
+
+        <div class="filter-panel">
+          <label class="filter-control">时间
+            <select id="filterPeriod">
+              <option value="">全部期间</option>
+              <option value="2025">2025 全年</option>
+              <option value="2025-12">2025-12</option>
+              <option value="2026-03">2026-03</option>
+              <option value="2026-05">2026-05</option>
+            </select>
+          </label>
+          <label class="filter-control">主体
+            <select id="filterPerson">
+              <option value="">全部主体</option>
+              <option value="北京格瑞拉科技有限公司">北京格瑞拉科技有限公司</option>
+              <option value="北京猩球科技有限公司">北京猩球科技有限公司</option>
+            </select>
+          </label>
+          <label class="filter-control">部门/项目
+            <select id="filterDepartment">
+              <option value="">全部部门</option>
+              <option value="未分配部门">未分配部门</option>
+              <option value="财务部">财务部</option>
+              <option value="行政部">行政部</option>
+              <option value="弹壳特攻队">弹壳特攻队</option>
+              <option value="美术中心">美术中心</option>
+            </select>
+          </label>
+          <label class="filter-control">一级分类
+            <select id="filterCategory">
+              <option value="">全部分类</option>
+              <option value="管理费用">管理费用</option>
+              <option value="研发费用">研发费用</option>
+              <option value="人员成本">人员成本</option>
+              <option value="财务费用">财务费用</option>
+              <option value="销售费用">销售费用</option>
+              <option value="未分类">未分类</option>
+            </select>
+          </label>
+          <label class="filter-control">银行账户
+            <select id="filterBank">
+              <option value="">全部银行</option>
+              <option value="招商银行人民币户">招商银行人民币户</option>
+              <option value="民生银行人民币户">民生银行人民币户</option>
+              <option value="民生银行美金户">民生银行美金户</option>
+            </select>
+          </label>
+          <label class="filter-control">币种
+            <select id="filterCurrency">
+              <option value="CNY_ALL">全人民币口径</option>
+              <option value="USD_ALL">全美金口径</option>
+              <option value="RMB">仅 RMB 交易</option>
+              <option value="USD">仅 USD 交易</option>
+            </select>
+          </label>
+          <button class="action-btn primary" id="saveViewBtn">保存视图</button>
+          <button class="action-btn" id="resetFilterBtn">重置</button>
+          <div class="filter-trail" id="filterTrail"></div>
+          <div class="saved-views" id="savedViews"></div>
+        </div>
+
+        <div class="metric-grid">
+          <article class="card metric-card" data-tip="老板默认看确认费用支出，避免把收入、借款和未分类项误算成费用。">
+            <div class="metric-top"><span class="metric-icon blue">¥</span><span class="more">...</span></div>
+            <div class="metric-label">确认费用支出</div>
+            <div class="metric-value"><b>1,518.8万</b><span class="delta">主口径</span></div>
+          </article>
+          <article class="card metric-card" data-tip="原始交易金额用于和银行流水核对，不能直接叫总费用。">
+            <div class="metric-top"><span class="metric-icon pink">Σ</span><span class="more">...</span></div>
+            <div class="metric-label">原始交易金额</div>
+            <div class="metric-value"><b>1,963.1万</b><span class="delta down">+22.6%</span></div>
+          </article>
+          <article class="card metric-card" data-tip="未分类金额 444.3 万，需要优先剥离收入类和往来款。">
+            <div class="metric-top"><span class="metric-icon green">?</span><span class="more">...</span></div>
+            <div class="metric-label">待确认金额</div>
+            <div class="metric-value"><b>444.3万</b><span class="delta">治理中</span></div>
+          </article>
+          <article class="card metric-card" data-tip="峰值月份 2025 年 12 月，2026 年 3 月次高，需要解释波动原因。">
+            <div class="metric-top"><span class="metric-icon orange">!</span><span class="more">...</span></div>
+            <div class="metric-label">月度峰值</div>
+            <div class="metric-value"><b>208.1万</b><span class="delta">2025-12</span></div>
+          </article>
+        </div>
+
+        <div class="dashboard-grid">
+          <article class="card analytics">
+            <div class="card-header">
+              <h2 class="card-title">费用趋势总览</h2>
+              <div class="trend-grain" id="trendGrain">
+                <button data-trend-grain="year">年</button>
+                <button data-trend-grain="quarter">季度</button>
+                <button class="active" data-trend-grain="month">月</button>
+                <button data-trend-grain="day">日</button>
+              </div>
+            </div>
+            <div class="chart-body">
+              <div class="trend-stage">
+                <div class="axis-labels"><span>220万</span><span>160万</span><span>100万</span><span>0</span></div>
+                <div class="bar-rhythm" id="rhythm"></div>
+                <div class="trend-line">
+                  <svg viewBox="0 0 640 230" preserveAspectRatio="none">
+                    <path class="ghost" d="M0 178 C80 120 126 150 176 88 S286 70 340 114 S430 32 508 50 S590 98 640 48"></path>
+                    <path class="main" d="M0 210 C42 170 74 180 118 154 S188 96 226 118 S280 140 328 100 S404 82 452 72 S524 36 558 62 S604 82 640 34"></path>
+                  </svg>
+                </div>
+                <span class="tooltip-dot"></span>
+                <div class="tooltip-card"><span>2025 Dec</span><b>208.1万</b></div>
+                <span class="tooltip-dot secondary"></span>
+                <div class="tooltip-card secondary"><span>2026 Mar</span><b>191.8万</b></div>
+              </div>
+              <div class="quarters"><span>2025 Q1</span><span>Q2</span><span>Q3</span><span>Q4</span><span>2026 Q1</span><span>Q2</span></div>
+            </div>
+          </article>
+
+          <div class="dashboard-side">
+            <article class="card plan-card">
+              <div class="card-header">
+                <h2 class="card-title blue">费用口径</h2>
+                <span class="more">...</span>
+              </div>
+              <div class="chart-body">
+                <div class="plan-row">
+                  <div><button class="small-select">确认费用</button><div class="percent">75%</div><div class="sub">1,518.8万</div></div>
+                  <div style="text-align:right"><button class="small-select">待确认</button><div class="percent">25%</div><div class="sub">444.3万</div></div>
+                </div>
+                <div class="split-bar"><span></span><span></span></div>
+              </div>
+            </article>
+
+            <article class="card monthly-card">
+              <div class="card-header">
+                <h2 class="card-title">月度累计分析</h2>
+                <button class="small-select">16个月走势⌄</button>
+              </div>
+              <div class="chart-body">
+                <div class="monthly-summary">
+                  <span><b>208.1万</b>峰值月份</span>
+                  <span><b>1,518.8万</b>累计费用</span>
+                  <span><b>84.2%</b>最大波动</span>
+                </div>
+                <div class="monthly-stage">
+                  <div class="monthly-bars" id="monthlyBars"></div>
+                  <div class="month-labels"><span>1月</span><span>3月</span><span>5月</span><span>7月</span><span>9月</span><span>11月</span><span>1月</span><span>3月</span></div>
+                </div>
+              </div>
+            </article>
+
+          </div>
+        </div>
+
+        <div class="bottom-grid">
+          <article class="card">
+            <div class="card-header">
+              <h2 class="card-title pink">费用结构分布</h2>
+              <span class="more">...</span>
+            </div>
+            <div class="chart-body">
+              <div class="semi-chart">
+                <div class="arc"></div>
+                <div class="arc-center"><span>最大费用</span><b>管理费用</b><strong>723.1万</strong></div>
+              </div>
+              <div class="dist-legend">
+                <div class="legend-item"><span class="dot" style="background:var(--blue)"></span>人员成本<b>272.2万</b></div>
+                <div class="legend-item"><span class="dot" style="background:var(--pink)"></span>管理费用<b>723.1万</b></div>
+                <div class="legend-item"><span class="dot" style="background:var(--lime)"></span>研发费用<b>236.8万</b></div>
+                <div class="legend-item"><span class="dot" style="background:var(--yellow)"></span>财务费用<b>262.3万</b></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h2 class="card-title">项目排行</h2>
+              <span class="more">...</span>
+            </div>
+            <div class="country-list">
+              <div class="country-row"><span>未分配部门</span><span class="change down">744.4万</span></div>
+              <div class="country-row"><span>财务部</span><span class="change">351.0万</span></div>
+              <div class="country-row"><span>行政部</span><span class="change">335.0万</span></div>
+              <div class="country-row"><span>公共费用</span><span class="change">52.7万</span></div>
+              <div class="country-row"><span>胡闹地牢</span><span class="change">45.9万</span></div>
+              <div class="country-row"><span>弹壳特攻队</span><span class="change">42.7万</span></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h2 class="card-title orange">费用热力</h2>
+              <span class="more">...</span>
+            </div>
+            <div class="heatmap" id="heatmap"></div>
+          </article>
+        </div>
+
+        <div class="drill-grid">
+          <article class="card">
+            <div class="card-header">
+              <h2 class="card-title">分类钻取</h2>
+              <button class="small-select" id="categoryBackBtn">返回上级</button>
+            </div>
+            <div class="drill-list" id="categoryDrill"></div>
+          </article>
+
+          <article class="card">
+            <div class="card-header">
+              <h2 class="card-title blue">部门费用详情</h2>
+              <button class="small-select" id="openDeptDrawerBtn">查看原因</button>
+            </div>
+            <div class="dept-summary" id="deptSummary"></div>
+            <div class="dept-trend" id="deptTrend"></div>
+            <div class="drill-list" id="deptTopList"></div>
+          </article>
+        </div>
+
+        <article class="card matrix-card">
+          <div class="card-header">
+            <h2 class="card-title">ExpenseRecord 明细追溯</h2>
+            <button class="small-select">sourceRowNo 可回溯</button>
+          </div>
+          <div class="chart-body" style="padding-top:0">
+            <table class="matrix-table">
+              <thead>
+                <tr>
+                  <th>date</th>
+                  <th>person</th>
+                  <th>department</th>
+                  <th>categoryL1 / L3</th>
+                  <th>bankAccount</th>
+                  <th>amountCNY</th>
+                  <th>transactionType</th>
+                  <th>sourceRowNo</th>
+                </tr>
+              </thead>
+              <tbody id="recordRows">
+                <tr><td>2025-12</td><td>北京格瑞拉科技有限公司</td><td>行政部</td><td>管理费用 / 团建费</td><td>招商银行人民币户</td><td class="num">190.4万</td><td><span class="status">expense</span></td><td>#1288</td></tr>
+                <tr><td>2026-03</td><td>北京格瑞拉科技有限公司</td><td>未分配部门</td><td>未分类 / 利息收入</td><td>民生银行人民币户</td><td class="num">192.9万</td><td><span class="status warn">income?</span></td><td>#1621</td></tr>
+                <tr><td>2025-08</td><td>北京猩球科技有限公司</td><td>美术中心</td><td>研发费用 / 美术外包费</td><td>招商银行人民币户</td><td class="num">132.5万</td><td><span class="status">expense</span></td><td>#906</td></tr>
+                <tr><td>2025-09</td><td>北京格瑞拉科技有限公司</td><td>财务部</td><td>财务费用 / 手续费</td><td>民生银行美金户</td><td class="num">170.0万</td><td><span class="status">expense</span></td><td>#1044</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <aside class="right-panel">
+      <div class="rail-top">
+        <button class="round">●</button>
+        <button class="round">⚙</button>
+        <div class="manager">
+          <div class="avatar">CFO</div>
+          <div><b>财务负责人</b><span>月度复盘</span></div>
+        </div>
+      </div>
+
+      <div class="calendar-card">
+        <div class="calendar-head"><span>2026.05</span><span>→</span></div>
+        <div class="calendar-scope">
+          <b id="calendarScopeTitle">当前：按月筛选</b>
+          <span id="calendarScopeDetail">2026-05，所有 KPI、图表、部门详情和明细表已按该月份联动。</span>
+        </div>
+        <div class="calendar-switch">
+          <button data-calendar-grain="year">2026 年</button>
+          <button data-calendar-grain="month" class="active">5 月</button>
+          <button data-calendar-grain="day">按日</button>
+          <button data-calendar-grain="range">区间</button>
+        </div>
+        <div class="calendar-picker">
+          <select id="calendarYear">
+            <option value="2025">2025 年</option>
+            <option value="2026" selected>2026 年</option>
+          </select>
+          <select id="calendarMonth">
+            <option value="01">1 月</option>
+            <option value="02">2 月</option>
+            <option value="03">3 月</option>
+            <option value="04">4 月</option>
+            <option value="05" selected>5 月</option>
+            <option value="06">6 月</option>
+            <option value="07">7 月</option>
+            <option value="08">8 月</option>
+            <option value="09">9 月</option>
+            <option value="10">10 月</option>
+            <option value="11">11 月</option>
+            <option value="12">12 月</option>
+          </select>
+        </div>
+        <div class="calendar-range" id="calendarRange">
+          <input id="calendarStart" type="date" value="2026-01-01" aria-label="开始日期">
+          <input id="calendarEnd" type="date" value="2026-05-31" aria-label="结束日期">
+          <button id="calendarApplyRange" type="button">应用日期区间</button>
+        </div>
+        <div class="calendar-grid" id="calendarGrid">
+          <b>MO</b><b>TU</b><b>WE</b><b>TH</b><b>FR</b><b>SA</b><b>SU</b>
+          <span></span><span></span><span></span><span></span><span class="day">1</span><span class="day">2</span><span class="day">3</span>
+          <span class="day">4</span><span class="day">5</span><span class="day">6</span><span class="day">7</span><span class="day">8</span><span class="day">9</span><span class="day">10</span>
+          <span class="day">11</span><span class="day">12</span><span class="day active">13</span><span class="day">14</span><span class="day warn">15</span><span class="day">16</span><span class="day">17</span>
+          <span class="day">18</span><span class="day">19</span><span class="day">20</span><span class="day">21</span><span class="day">22</span><span class="day">23</span><span class="day">24</span>
+          <span class="day">25</span><span class="day">26</span><span class="day">27</span><span class="day">28</span><span class="day">29</span><span class="day">30</span><span class="day">31</span>
+        </div>
+      </div>
+
+      <div class="side-card">
+        <div class="side-head"><span>5月15日</span><button class="small-select">全部⌄</button></div>
+        <div class="timeline">
+          <span class="timeline-time">09:30</span>
+          <div class="timeline-card">
+            <b>费用口径确认</b>
+            <span>确认费用支出 1,518.8 万，原始流水 1,963.1 万。</span>
+          </div>
+          <span class="timeline-time">10:20</span>
+          <div class="timeline-card mark">
+            <b>未分类治理会</b>
+            <span>334.2 万疑似收入类，优先从费用口径剥离。</span>
+          </div>
+          <span class="timeline-time">14:00</span>
+          <div class="timeline-card">
+            <b>项目费用复盘</b>
+            <span>弹壳特攻队、美术中心、胡闹地牢进入项目明细。</span>
+          </div>
+        </div>
+        <button class="rail-button">View all details</button>
+      </div>
+    </aside>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="drawer" id="detailDrawer">
+    <div class="drawer-head">
+      <div>
+        <h2 id="drawerTitle">费用构成原因</h2>
+        <p id="drawerSubtitle">点击异常点、未分类金额、分类或部门后，这里展示当前口径的原因拆解和 Top 明细。</p>
+      </div>
+      <button class="drawer-close" id="drawerClose">×</button>
+    </div>
+    <div class="drawer-kpis" id="drawerKpis"></div>
+    <div class="drawer-section">
+      <h3>构成原因</h3>
+      <ul class="reason-list" id="drawerReasons"></ul>
+    </div>
+    <div class="drawer-section">
+      <h3>Top 明细</h3>
+      <ul class="top-list" id="drawerTop"></ul>
+    </div>
+  </aside>
+
+  <script type="text/plain" id="legacy-script">
+    const monthly = [88.9, 100.2, 124.3, 98.6, 95.6, 126.1, 136.5, 140.1, 138.9, 132.4, 126.8, 208.1, 116.1, 104.2, 191.8, 33.6];
+    const rhythm = document.getElementById('rhythm');
+    rhythm.innerHTML = monthly.map(value => {
+      const height = Math.max(10, value / 208.1 * 190);
+      return `<span class="rhythm-bar" style="height:${height}px"></span>`;
+    }).join('');
+
+    const monthlyBars = document.getElementById('monthlyBars');
+    monthlyBars.innerHTML = monthly.map((value, index) => {
+      const height = Math.max(14, value / 208.1 * 92);
+      const state = value >= 190 ? ' hot' : value >= 160 ? ' warn' : '';
+      return `<span class="month-bar${state}" title="${index + 1}月 ${value}万" style="height:${height}%"></span>`;
+    }).join('');
+
+    const heatmap = document.getElementById('heatmap');
+    const rows = ['6pm', '4pm', '2pm', '12pm', '10am', '8am'];
+    const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    const heat = [
+      [2, 3, 4, 3, 4, 2, 1],
+      [1, 2, 3, 4, 4, 3, 2],
+      [2, 4, 3, 2, 4, 4, 3],
+      [1, 2, 3, 3, 2, 4, 4],
+      [2, 3, 2, 1, 3, 2, 3],
+      [1, 1, 2, 2, 3, 1, 2]
+    ];
+    heatmap.innerHTML = `<span></span>${days.map(day => `<b>${day}</b>`).join('')}` +
+      rows.map((row, r) => `<span>${row}</span>${heat[r].map(level => `<span class="heat-cell h${level}"></span>`).join('')}`).join('');
+
+    document.body.addEventListener('click', event => {
+      const day = event.target.closest('.day');
+      if (day) {
+        document.querySelectorAll('.day.active').forEach(item => item.classList.remove('active'));
+        day.classList.add('active');
+      }
+
+      const target = event.target.closest('.card, .calendar-card, .side-card, .timeline-card, .nav button, .tab, .select-btn, .export-btn, .round, .rail-button');
+      if (!target) return;
+      document.querySelectorAll('.active-glow').forEach(item => item.classList.remove('active-glow'));
+      target.classList.add('active-glow');
+      setTimeout(() => target.classList.remove('active-glow'), 900);
+    });
+
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(item => item.classList.remove('active'));
+        tab.classList.add('active');
+      });
+    });
+  </script>
+
+  <script>
+    const $ = selector => document.querySelector(selector);
+    const $$ = selector => Array.from(document.querySelectorAll(selector));
+    const fmt = value => `${Number(value || 0).toFixed(1)}万`;
+    const periods = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04'];
+    const monthly = [88.9, 100.2, 124.3, 98.6, 95.6, 126.1, 136.5, 140.1, 138.9, 132.4, 126.8, 208.1, 116.1, 104.2, 191.8, 33.6];
+    const records = [
+      ['2025-12-08','2025-12','北京格瑞拉科技有限公司','行政部','管理费用','办公场所','房租物业','招商银行人民币户','RMB',190.4,'expense','normal',1288],
+      ['2025-06-18','2025-06','北京格瑞拉科技有限公司','行政部','管理费用','福利团建','团建费','招商银行人民币户','RMB',210.4,'expense','normal',744],
+      ['2025-10-09','2025-10','北京猩球科技有限公司','公共费用','管理费用','行政采购','办公用品','招商银行人民币户','RMB',168.0,'expense','normal',1120],
+      ['2026-02-22','2026-02','北京格瑞拉科技有限公司','行政部','管理费用','差旅交通','住宿交通','招商银行人民币户','RMB',154.3,'expense','normal',1511],
+      ['2025-08-16','2025-08','北京猩球科技有限公司','美术中心','研发费用','美术外包','角色原画','招商银行人民币户','RMB',132.5,'expense','normal',906],
+      ['2026-03-12','2026-03','北京格瑞拉科技有限公司','弹壳特攻队','研发费用','研发外包','版本开发','招商银行人民币户','RMB',104.3,'expense','normal',1608],
+      ['2025-09-03','2025-09','北京格瑞拉科技有限公司','财务部','财务费用','手续费','银行手续费','民生银行美金户','USD',170.0,'expense','normal',1044],
+      ['2026-01-11','2026-01','北京猩球科技有限公司','财务部','财务费用','汇兑损益','汇率差额','民生银行美金户','USD',92.3,'expense','normal',1410],
+      ['2025-04-21','2025-04','北京格瑞拉科技有限公司','人事行政','人员成本','薪酬社保','工资','招商银行人民币户','RMB',120.6,'expense','normal',501],
+      ['2025-11-24','2025-11','北京猩球科技有限公司','人事行政','人员成本','薪酬社保','社保公积金','招商银行人民币户','RMB',151.6,'expense','normal',1212],
+      ['2025-07-15','2025-07','北京格瑞拉科技有限公司','市场部','销售费用','推广投放','广告费','招商银行人民币户','RMB',24.5,'expense','normal',818],
+      ['2026-03-02','2026-03','北京格瑞拉科技有限公司','未分配部门','未分类','疑似收入','利息收入','民生银行人民币户','RMB',192.9,'income','pending_classify',1621],
+      ['2025-12-20','2025-12','北京格瑞拉科技有限公司','未分配部门','未分类','往来款','主体往来','民生银行人民币户','RMB',151.3,'intercompany','pending_classify',1320],
+      ['2026-04-10','2026-04','北京猩球科技有限公司','未分配部门','未分类','待确认费用','摘要缺失','招商银行人民币户','RMB',100.1,'unclassified','abnormal',1786]
+    ].map(row => ({ date: row[0], periodMonth: row[1], person: row[2], department: row[3], categoryL1: row[4], categoryL2: row[5], categoryL3: row[6], bankAccount: row[7], currency: row[8], amountCNY: row[9], transactionType: row[10], importStatus: row[11], sourceRowNo: row[12] }));
+
+    const categoryModel = {
+      '管理费用': { amount: 723.1, children: { '办公场所': { amount: 190.4, children: { '房租物业': 190.4 } }, '福利团建': { amount: 210.4, children: { '团建费': 210.4 } }, '行政采购': { amount: 168.0, children: { '办公用品': 168.0 } }, '差旅交通': { amount: 154.3, children: { '住宿交通': 154.3 } } } },
+      '研发费用': { amount: 236.8, children: { '美术外包': { amount: 132.5, children: { '角色原画': 132.5 } }, '研发外包': { amount: 104.3, children: { '版本开发': 104.3 } } } },
+      '财务费用': { amount: 262.3, children: { '手续费': { amount: 170.0, children: { '银行手续费': 170.0 } }, '汇兑损益': { amount: 92.3, children: { '汇率差额': 92.3 } } } },
+      '人员成本': { amount: 272.2, children: { '薪酬社保': { amount: 272.2, children: { '工资': 120.6, '社保公积金': 151.6 } } } },
+      '销售费用': { amount: 24.5, children: { '推广投放': { amount: 24.5, children: { '广告费': 24.5 } } } },
+      '未分类': { amount: 444.3, children: { '疑似收入': { amount: 192.9, children: { '利息收入': 192.9 } }, '往来款': { amount: 151.3, children: { '主体往来': 151.3 } }, '待确认费用': { amount: 100.1, children: { '摘要缺失': 100.1 } } } }
+    };
+    const departmentModel = {
+      '未分配部门': { amount: 744.4, count: 3, risk: '部门空值治理', trend: [42,55,68,40,76,92], top: ['疑似收入 192.9万','主体往来 151.3万','摘要缺失 100.1万'] },
+      '财务部': { amount: 351.0, count: 2, risk: '手续费/汇兑损益', trend: [35,42,54,48,70,58], top: ['银行手续费 170.0万','汇率差额 92.3万','账户核对差异 88.7万'] },
+      '行政部': { amount: 335.0, count: 3, risk: '办公场所/福利费', trend: [44,52,49,74,63,86], top: ['房租物业 190.4万','差旅交通 154.3万','团建费 210.4万'] },
+      '弹壳特攻队': { amount: 42.7, count: 1, risk: '项目研发外包', trend: [18,24,32,40,38,52], top: ['版本开发 104.3万','测试服务 18.4万','服务器联调 12.8万'] },
+      '美术中心': { amount: 45.9, count: 1, risk: '美术外包交付', trend: [22,34,28,44,48,62], top: ['角色原画 132.5万','UI 动效 22.4万','素材修订 9.7万'] }
+    };
+    const state = { period: '', date: '', person: '', department: '', categoryL1: '', categoryL2: '', categoryL3: '', bankAccount: '', currency: '', importStatus: '' };
+    let categoryPath = [];
+
+    function matches(record) {
+      if (state.date && record.date !== state.date) return false;
+      if (state.period?.length === 4 && !record.periodMonth.startsWith(state.period)) return false;
+      if (state.period?.length === 7 && record.periodMonth !== state.period) return false;
+      for (const key of ['person','department','categoryL1','categoryL2','categoryL3','bankAccount','currency','importStatus']) {
+        if (state[key] && record[key] !== state[key]) return false;
+      }
+      return true;
+    }
+    const filtered = () => records.filter(matches);
+    const sum = list => list.reduce((total, record) => total + record.amountCNY, 0);
+    const groupSum = (list, key) => [...list.reduce((map, item) => map.set(item[key], (map.get(item[key]) || 0) + item.amountCNY), new Map()).entries()].sort((a, b) => b[1] - a[1]);
+
+    function setState(next, options = {}) {
+      Object.assign(state, next);
+      if (next.categoryL1 === '') {
+        state.categoryL2 = '';
+        state.categoryL3 = '';
+        categoryPath = [];
+      }
+      syncControls();
+      renderAll(options);
+    }
+    function syncControls() {
+      $('#filterPeriod').value = state.period || '';
+      $('#filterPerson').value = state.person || '';
+      $('#filterDepartment').value = state.department || '';
+      $('#filterCategory').value = state.categoryL1 || '';
+      $('#filterBank').value = state.bankAccount || '';
+      $('#filterCurrency').value = state.currency || '';
+    }
+    function renderTrail() {
+      const chips = [
+        ['date','日期'], ['period','时间'], ['person','主体'], ['department','部门'], ['categoryL1','一级'], ['categoryL2','二级'], ['categoryL3','三级'], ['bankAccount','银行'], ['currency','币种'], ['importStatus','状态']
+      ].filter(([key]) => state[key]).map(([key, label]) => `<button class="chip" data-clear="${key}">${label}: ${state[key]} ×</button>`);
+      $('#filterTrail').innerHTML = chips.join('') || '<span class="chip neutral">当前口径：全部数据</span>';
+    }
+    function renderSavedViews() {
+      const saved = JSON.parse(localStorage.getItem('financeSavedViews') || '[]');
+      $('#savedViews').innerHTML = saved.length ? saved.map((view, index) => `<button class="chip saved" data-view="${index}">${view.name}</button>`).join('') : '<span class="chip neutral">可保存常用筛选视图，例如“3月未分类治理”</span>';
+    }
+    function renderMetrics(list) {
+      const cards = $$('.metric-card');
+      const confirmed = sum(list.filter(item => item.importStatus === 'normal' && item.transactionType === 'expense'));
+      const pending = sum(list.filter(item => item.importStatus !== 'normal' || item.categoryL1 === '未分类'));
+      if (cards[0]) cards[0].querySelector('.metric-value b').textContent = fmt(confirmed);
+      if (cards[1]) cards[1].querySelector('.metric-value b').textContent = fmt(sum(list));
+      if (cards[2]) cards[2].querySelector('.metric-value b').textContent = fmt(pending);
+      if (cards[3]) cards[3].querySelector('.metric-value b').textContent = fmt(Math.max(...monthly));
+    }
+    function renderCharts() {
+      $('#rhythm').innerHTML = monthly.map((value, index) => {
+        const period = periods[index];
+        const active = state.period === period || (state.period.length === 4 && period.startsWith(state.period));
+        return `<span class="rhythm-bar${active ? ' is-filtered' : ''}" data-period="${period}" style="height:${Math.max(10, value / 208.1 * 190)}px"></span>`;
+      }).join('');
+      $('#monthlyBars').innerHTML = monthly.map((value, index) => {
+        const period = periods[index];
+        const status = value >= 190 ? ' hot' : value >= 160 ? ' warn' : '';
+        const active = state.period === period || (state.period.length === 4 && period.startsWith(state.period));
+        return `<span class="month-bar${status}${active ? ' is-filtered' : ''}" data-period="${period}" title="${period} ${fmt(value)}" style="height:${Math.max(14, value / 208.1 * 92)}%"></span>`;
+      }).join('');
+    }
+    function renderHeatmap() {
+      const rows = ['6pm','4pm','2pm','12pm','10am','8am'];
+      const days = ['S','M','T','W','T','F','S'];
+      const heat = [[2,3,4,3,4,2,1],[1,2,3,4,4,3,2],[2,4,3,2,4,4,3],[1,2,3,3,2,4,4],[2,3,2,1,3,2,3],[1,1,2,2,3,1,2]];
+      $('#heatmap').innerHTML = `<span></span>${days.map(day => `<b>${day}</b>`).join('')}` + rows.map((row, r) => `<span>${row}</span>${heat[r].map(level => `<span class="heat-cell h${level}"></span>`).join('')}`).join('');
+    }
+    function renderCategoryLegend() {
+      const colors = ['var(--pink)','var(--lime)','var(--blue)','var(--yellow)'];
+      $('.dist-legend').innerHTML = Object.entries(categoryModel).slice(0, 4).map(([name, model], index) =>
+        `<div class="legend-item ${state.categoryL1 === name ? 'is-filtered' : ''}" data-category="${name}"><span class="dot" style="background:${colors[index]}"></span>${name}<b>${fmt(model.amount)}</b></div>`
+      ).join('');
+    }
+    function currentCategoryItems() {
+      if (!categoryPath.length) return Object.entries(categoryModel).map(([name, model]) => ({ name, amount: model.amount, level: 1, child: true }));
+      if (categoryPath.length === 1) return Object.entries(categoryModel[categoryPath[0]].children).map(([name, model]) => ({ name, amount: model.amount, level: 2, child: true }));
+      return Object.entries(categoryModel[categoryPath[0]].children[categoryPath[1]].children).map(([name, amount]) => ({ name, amount, level: 3, child: false }));
+    }
+    function renderCategoryDrill() {
+      const title = categoryPath.length ? `当前路径：${categoryPath.join(' / ')}` : '点击一级分类后展开二级/三级分类';
+      $('#categoryDrill').innerHTML = `<span class="chip neutral">${title}</span>` + currentCategoryItems().map(item =>
+        `<button class="drill-item" data-drill-level="${item.level}" data-drill-name="${item.name}"><span>${item.name}<small>${item.child ? '点击展开下一级' : '点击锁定三级分类'}</small></span><b>${fmt(item.amount)}</b></button>`
+      ).join('');
+    }
+    function renderDepartmentList() {
+      $('.country-list').innerHTML = Object.entries(departmentModel).map(([name, dept], index) =>
+        `<div class="country-row ${state.department === name ? 'is-filtered' : ''}" data-department="${name}"><span>${name}</span><span class="change ${index === 0 ? 'down' : ''}">${fmt(dept.amount)}</span></div>`
+      ).join('');
+    }
+    function renderDepartmentDetail() {
+      const name = state.department || '未分配部门';
+      const dept = departmentModel[name] || departmentModel['未分配部门'];
+      $('#deptSummary').innerHTML = `<span><b>${fmt(dept.amount)}</b>当前部门金额</span><span><b>${dept.count} 笔</b>筛选命中流水</span><span><b>${dept.risk}</b>关注点</span>`;
+      $('#deptTrend').innerHTML = dept.trend.map(value => `<span style="height:${value}%"></span>`).join('');
+      $('#deptTopList').innerHTML = dept.top.map(item => `<button class="drill-item" data-dept-top="${item}"><span>${item}<small>点击查看构成原因</small></span><b>→</b></button>`).join('');
+    }
+    function renderTable(list) {
+      $('#recordRows').innerHTML = list.length ? list.slice(0, 10).map(record => `
+        <tr data-row="${record.sourceRowNo}"><td>${record.date}</td><td>${record.person}</td><td>${record.department}</td><td>${record.categoryL1} / ${record.categoryL3}</td><td>${record.bankAccount}</td><td class="num">${fmt(record.amountCNY)}</td><td><span class="status ${record.importStatus === 'normal' ? '' : 'warn'}">${record.transactionType}</span></td><td>#${record.sourceRowNo}</td></tr>
+      `).join('') : '<tr><td colspan="8">当前筛选没有匹配明细，点击“重置”恢复全部数据。</td></tr>';
+    }
+    function renderAll(options = {}) {
+      const list = filtered();
+      renderTrail();
+      renderSavedViews();
+      renderMetrics(list);
+      renderCharts();
+      renderCategoryLegend();
+      renderCategoryDrill();
+      renderDepartmentList();
+      renderDepartmentDetail();
+      renderTable(list);
+      if (options.openDrawer) openDrawer(options.drawerTitle || '当前筛选明细', options.drawerSubtitle || '筛选已联动到 KPI、图表和明细表。', list);
+    }
+    function openDrawer(title, subtitle, list = filtered(), extraReasons = []) {
+      const total = sum(list);
+      const max = list.slice().sort((a, b) => b.amountCNY - a.amountCNY)[0];
+      $('#drawerTitle').textContent = title;
+      $('#drawerSubtitle').textContent = subtitle;
+      $('#drawerKpis').innerHTML = `<span><b>${fmt(total)}</b>当前金额</span><span><b>${list.length} 笔</b>命中明细</span><span><b>${max ? fmt(max.amountCNY) : '0.0万'}</b>最大单笔</span>`;
+      const categoryTop = groupSum(list, 'categoryL1')[0];
+      const deptTop = groupSum(list, 'department')[0];
+      const reasons = extraReasons.concat([`Top 分类：${categoryTop?.[0] || '无'} ${fmt(categoryTop?.[1] || 0)}`, `Top 部门：${deptTop?.[0] || '无'} ${fmt(deptTop?.[1] || 0)}`, state.importStatus ? '当前是待归类/异常治理口径，建议优先补齐 categoryL1/L2/L3。' : '可继续点击分类、部门或明细行追到更细口径。']);
+      $('#drawerReasons').innerHTML = reasons.map(reason => `<li>${reason}</li>`).join('');
+      $('#drawerTop').innerHTML = list.slice().sort((a, b) => b.amountCNY - a.amountCNY).slice(0, 6).map(record => `<li><b>#${record.sourceRowNo}</b> ${record.date}｜${record.department}｜${record.categoryL1}/${record.categoryL3}<br>${record.bankAccount}｜${record.currency}｜${fmt(record.amountCNY)}</li>`).join('') || '<li>当前没有可展示的 Top 明细。</li>';
+      $('#drawerBackdrop').classList.add('open');
+      $('#detailDrawer').classList.add('open');
+    }
+    function saveCurrentView() {
+      const saved = JSON.parse(localStorage.getItem('financeSavedViews') || '[]');
+      const activeText = Object.entries(state).filter(([, value]) => value).map(([key, value]) => `${key}:${value}`).join(' / ') || '全部数据';
+      const name = prompt('给这个筛选视图命名', activeText);
+      if (!name) return;
+      saved.unshift({ name, state: { ...state } });
+      localStorage.setItem('financeSavedViews', JSON.stringify(saved.slice(0, 6)));
+      renderSavedViews();
+    }
+    function glow(target) {
+      $$('.active-glow').forEach(item => item.classList.remove('active-glow'));
+      target.classList.add('active-glow');
+      setTimeout(() => target.classList.remove('active-glow'), 900);
+    }
+
+    $('#filterPeriod').addEventListener('change', event => setState({ period: event.target.value, date: '' }));
+    $('#filterPerson').addEventListener('change', event => setState({ person: event.target.value }));
+    $('#filterDepartment').addEventListener('change', event => setState({ department: event.target.value }));
+    $('#filterCategory').addEventListener('change', event => {
+      categoryPath = event.target.value ? [event.target.value] : [];
+      setState({ categoryL1: event.target.value, categoryL2: '', categoryL3: '' });
+    });
+    $('#filterBank').addEventListener('change', event => setState({ bankAccount: event.target.value }));
+    $('#filterCurrency').addEventListener('change', event => setState({ currency: event.target.value }));
+    $('#saveViewBtn').addEventListener('click', saveCurrentView);
+    $('#resetFilterBtn').addEventListener('click', () => {
+      Object.keys(state).forEach(key => state[key] = '');
+      categoryPath = [];
+      renderAll();
+    });
+    $('#categoryBackBtn').addEventListener('click', () => {
+      categoryPath.pop();
+      if (!categoryPath.length) setState({ categoryL1: '', categoryL2: '', categoryL3: '' });
+      else setState({ categoryL1: categoryPath[0], categoryL2: '', categoryL3: '' });
+    });
+    $('#openDeptDrawerBtn').addEventListener('click', () => openDrawer('部门费用详情', state.department || '未分配部门', filtered()));
+    $('#drawerClose').addEventListener('click', () => { $('#drawerBackdrop').classList.remove('open'); $('#detailDrawer').classList.remove('open'); });
+    $('#drawerBackdrop').addEventListener('click', () => $('#drawerClose').click());
+
+    document.body.addEventListener('click', event => {
+      const clear = event.target.closest('[data-clear]');
+      if (clear) { state[clear.dataset.clear] = ''; if (clear.dataset.clear.startsWith('category')) categoryPath = state.categoryL1 ? [state.categoryL1] : []; renderAll(); return; }
+      const view = event.target.closest('[data-view]');
+      if (view) { const saved = JSON.parse(localStorage.getItem('financeSavedViews') || '[]'); Object.assign(state, saved[Number(view.dataset.view)].state); categoryPath = [state.categoryL1, state.categoryL2].filter(Boolean); syncControls(); renderAll({ openDrawer: true, drawerTitle: '已恢复筛选视图', drawerSubtitle: saved[Number(view.dataset.view)].name }); return; }
+      const grain = event.target.closest('[data-calendar-grain]');
+      if (grain) { $$('.calendar-switch button').forEach(item => item.classList.remove('active')); grain.classList.add('active'); if (grain.dataset.calendarGrain === 'year') setState({ period: '2026', date: '' }); if (grain.dataset.calendarGrain === 'month') setState({ period: '2026-05', date: '' }); }
+      const day = event.target.closest('.day');
+      if (day) { $$('.day.active').forEach(item => item.classList.remove('active')); day.classList.add('active'); setState({ period: '2026-05', date: `2026-05-${String(day.textContent).padStart(2, '0')}` }); }
+      const monthBar = event.target.closest('.month-bar, .rhythm-bar');
+      if (monthBar?.dataset.period) setState({ period: monthBar.dataset.period, date: '' }, { openDrawer: true, drawerTitle: '月度异常点拆解', drawerSubtitle: `${monthBar.dataset.period} 已联动到 KPI、分类、部门和明细表。` });
+      const legend = event.target.closest('[data-category]');
+      if (legend) { categoryPath = [legend.dataset.category]; setState({ categoryL1: legend.dataset.category, categoryL2: '', categoryL3: '' }, { openDrawer: true, drawerTitle: '一级分类钻取', drawerSubtitle: `${legend.dataset.category} 已展开到二级分类。` }); }
+      const drill = event.target.closest('[data-drill-level]');
+      if (drill) {
+        const level = Number(drill.dataset.drillLevel), name = drill.dataset.drillName;
+        if (level === 1) { categoryPath = [name]; setState({ categoryL1: name, categoryL2: '', categoryL3: '' }); }
+        if (level === 2) { categoryPath = [state.categoryL1 || categoryPath[0], name]; setState({ categoryL2: name, categoryL3: '' }); }
+        if (level === 3) setState({ categoryL3: name }, { openDrawer: true, drawerTitle: '三级分类明细', drawerSubtitle: `${categoryPath.join(' / ')} / ${name}` });
+      }
+      const dept = event.target.closest('[data-department]');
+      if (dept) setState({ department: dept.dataset.department }, { openDrawer: true, drawerTitle: '部门费用详情', drawerSubtitle: `${dept.dataset.department} 的费用趋势、构成和 Top 明细已刷新。` });
+      const deptTop = event.target.closest('[data-dept-top]');
+      if (deptTop) openDrawer('部门 Top 明细原因', deptTop.dataset.deptTop, filtered(), ['该条目来自部门费用详情的 Top 清单。']);
+      const row = event.target.closest('[data-row]');
+      if (row) { const record = records.find(item => String(item.sourceRowNo) === row.dataset.row); openDrawer('原始流水追溯', `sourceRowNo #${record.sourceRowNo}`, [record], ['可用 sourceRowNo 回到 Excel 原始行核对摘要、账户和分类。']); }
+      const metric = event.target.closest('.metric-card');
+      if (metric) {
+        const index = $$('.metric-card').indexOf(metric);
+        if (index === 2) setState({ importStatus: 'pending_classify', categoryL1: '未分类', categoryL2: '', categoryL3: '' }, { openDrawer: true, drawerTitle: '待归类列表', drawerSubtitle: '未分类金额已联动到明细表，可批量补齐三级分类。' });
+        else if (index === 3) setState({ period: '2025-12', date: '' }, { openDrawer: true, drawerTitle: '峰值月份异常点', drawerSubtitle: '2025-12 是费用峰值月份，右侧展示构成原因和 Top 明细。' });
+        else openDrawer(index === 0 ? '确认费用口径' : '原始流水口径', metric.dataset.tip || '当前卡片口径', filtered());
+      }
+      const target = event.target.closest('.card, .calendar-card, .side-card, .timeline-card, .nav button, .tab, .select-btn, .export-btn, .round, .rail-button, .action-btn');
+      if (target) glow(target);
+    });
+    $$('.tab').forEach(tab => tab.addEventListener('click', () => { $$('.tab').forEach(item => item.classList.remove('active')); tab.classList.add('active'); }));
+
+    renderHeatmap();
+    renderAll();
+  </script>
+
+  <script>
+    (function enhanceLinkedFinanceInteractions() {
+      const RATE_USD_CNY = 7.2;
+      let calendarMode = 'month';
+
+      state.currencyMode = state.currencyMode || 'CNY';
+      state.trendGrain = state.trendGrain || '';
+      state.trendManual = Boolean(state.trendManual);
+      state.dateStart = state.dateStart || '';
+      state.dateEnd = state.dateEnd || '';
+      records.forEach(record => {
+        record.exchangeRate = record.currency === 'USD' ? RATE_USD_CNY : 1;
+        record.amountUSD = record.amountCNY / RATE_USD_CNY;
+      });
+
+      function money(cnyValue) {
+        const value = Number(cnyValue || 0);
+        return state.currencyMode === 'USD'
+          ? `$${(value / RATE_USD_CNY).toFixed(1)}万`
+          : `${value.toFixed(1)}万`;
+      }
+
+      function amountSum(list) {
+        return list.reduce((total, record) => total + record.amountCNY, 0);
+      }
+
+      function currentCurrencyLabel() {
+        return state.currencyMode === 'USD' ? '全美金口径' : '全人民币口径';
+      }
+
+      function matchRecord(record, omit = []) {
+        const skip = new Set(omit);
+        if (!skip.has('date') && state.date && record.date !== state.date) return false;
+        if (!skip.has('dateRange') && !state.date && state.dateStart && record.date < state.dateStart) return false;
+        if (!skip.has('dateRange') && !state.date && state.dateEnd && record.date > state.dateEnd) return false;
+        const hasDateRange = state.dateStart || state.dateEnd;
+        if (!hasDateRange && !skip.has('period') && state.period?.length === 4 && !record.periodMonth.startsWith(state.period)) return false;
+        if (!hasDateRange && !skip.has('period') && state.period?.length === 7 && record.periodMonth !== state.period) return false;
+        for (const key of ['person','department','categoryL1','categoryL2','categoryL3','bankAccount','currency','importStatus']) {
+          if (!skip.has(key) && state[key] && record[key] !== state[key]) return false;
+        }
+        return true;
+      }
+
+      matches = record => matchRecord(record);
+
+      function listWithOmit(omit = []) {
+        return records.filter(record => matchRecord(record, omit));
+      }
+
+      function groupedAmount(list, key) {
+        const map = new Map();
+        list.forEach(record => map.set(record[key], (map.get(record[key]) || 0) + record.amountCNY));
+        return [...map.entries()].sort((a, b) => b[1] - a[1]);
+      }
+
+      function calendarScopeText() {
+        const tail = 'KPI、图表、部门详情和明细表已同步联动。';
+        if (calendarMode === 'range' && !(state.dateStart || state.dateEnd)) {
+          const current = state.date || state.period || '全部时间';
+          return ['正在设置日期区间', `选择开始/结束日期后点击“应用日期区间”；当前数据仍按 ${current} 展示。`];
+        }
+        if (state.dateStart || state.dateEnd) {
+          return ['当前：按日期区间筛选', `${state.dateStart || '最早日期'} 至 ${state.dateEnd || '最新日期'}，${tail}`];
+        }
+        if (state.date) return ['当前：按日筛选', `${state.date}，${tail}`];
+        if (state.period?.length === 4) return ['当前：按年筛选', `${state.period} 全年，${tail}`];
+        if (state.period?.length === 7) return ['当前：按月筛选', `${state.period}，${tail}`];
+        return ['当前：全部时间', `未限制交易日期，${tail}`];
+      }
+
+      function renderCalendarScope() {
+        const [title, detail] = calendarScopeText();
+        if ($('#calendarScopeTitle')) $('#calendarScopeTitle').textContent = title;
+        if ($('#calendarScopeDetail')) $('#calendarScopeDetail').textContent = detail;
+      }
+
+      function syncCalendarFromState() {
+        if (state.dateStart || state.dateEnd) calendarMode = 'range';
+        else if (state.date) calendarMode = 'day';
+        else if (state.period?.length === 7) calendarMode = 'month';
+        else if (calendarMode !== 'range' && state.period?.length === 4) calendarMode = 'year';
+        const year = state.date?.slice(0, 4) || state.dateStart?.slice(0, 4) || state.period?.slice(0, 4) || $('#calendarYear')?.value || '2026';
+        const month = state.date?.slice(5, 7) || state.dateStart?.slice(5, 7) || (state.period?.length === 7 ? state.period.slice(5, 7) : ($('#calendarMonth')?.value || '05'));
+        if ($('#calendarYear')) $('#calendarYear').value = year;
+        if ($('#calendarMonth')) $('#calendarMonth').value = month;
+        if ($('#calendarStart') && state.dateStart) $('#calendarStart').value = state.dateStart;
+        if ($('#calendarEnd') && state.dateEnd) $('#calendarEnd').value = state.dateEnd;
+        $('.calendar-head span:first-child').textContent = state.dateStart || state.dateEnd ? '日期区间' : `${year}.${month}`;
+        const yearButton = $('[data-calendar-grain="year"]');
+        const monthButton = $('[data-calendar-grain="month"]');
+        if (yearButton) yearButton.textContent = `${year} 年`;
+        if (monthButton) monthButton.textContent = `${Number(month)} 月`;
+        renderCalendarScope();
+        if ($('#calendarRange')) $('#calendarRange').classList.toggle('open', calendarMode === 'range');
+        $$('.calendar-switch button').forEach(button => button.classList.toggle('active', button.dataset.calendarGrain === calendarMode));
+      }
+
+      function renderCalendar() {
+        syncCalendarFromState();
+        const year = Number($('#calendarYear').value);
+        const month = Number($('#calendarMonth').value);
+        const grid = $('#calendarGrid');
+        if (!grid) return;
+
+        if (calendarMode === 'year') {
+          grid.innerHTML = `<div class="calendar-month-board">
+            ${Array.from({ length: 12 }, (_, index) => {
+              const mm = String(index + 1).padStart(2, '0');
+              const period = `${year}-${mm}`;
+              const active = state.period === period;
+              return `<button class="${active ? 'active' : ''}" data-month-picker="${period}">${index + 1}月</button>`;
+            }).join('')}
+          </div>`;
+          return;
+        }
+
+        const weekLabels = '<b>MO</b><b>TU</b><b>WE</b><b>TH</b><b>FR</b><b>SA</b><b>SU</b>';
+        const firstDay = new Date(year, month - 1, 1);
+        const leading = (firstDay.getDay() + 6) % 7;
+        const daysInMonth = new Date(year, month, 0).getDate();
+        const blanks = Array.from({ length: leading }, () => '<span></span>').join('');
+        const days = Array.from({ length: daysInMonth }, (_, index) => {
+          const day = index + 1;
+          const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const hasAbnormal = records.some(record => record.date === date && record.importStatus !== 'normal');
+          const active = state.date === date;
+          const inRange = !state.date && (state.dateStart || state.dateEnd) && (!state.dateStart || date >= state.dateStart) && (!state.dateEnd || date <= state.dateEnd);
+          return `<span class="day ${active ? 'active' : ''} ${inRange ? 'in-range' : ''} ${hasAbnormal ? 'warn' : ''}" data-date="${date}">${day}</span>`;
+        }).join('');
+        grid.innerHTML = weekLabels + blanks + days;
+      }
+
+      function ensurePeriodOption(value) {
+        const select = $('#filterPeriod');
+        if (!select || !value || select.querySelector(`option[value="${value}"]`)) return;
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = value.length === 4 ? `${value} 全年` : value;
+        select.appendChild(option);
+      }
+
+      syncControls = function enhancedSyncControls() {
+        ensurePeriodOption(state.period);
+        $('#filterPeriod').value = state.period || '';
+        $('#filterPerson').value = state.person || '';
+        $('#filterDepartment').value = state.department || '';
+        $('#filterCategory').value = state.categoryL1 || '';
+        $('#filterBank').value = state.bankAccount || '';
+        if (state.currency) $('#filterCurrency').value = state.currency;
+        else $('#filterCurrency').value = state.currencyMode === 'USD' ? 'USD_ALL' : 'CNY_ALL';
+        renderCalendar();
+      };
+
+      setState = function enhancedSetState(next, options = {}) {
+        const patch = { ...next };
+        if (Object.prototype.hasOwnProperty.call(patch, 'currency')) {
+          if (patch.currency === 'CNY_ALL') {
+            state.currency = '';
+            state.currencyMode = 'CNY';
+            delete patch.currency;
+          } else if (patch.currency === 'USD_ALL') {
+            state.currency = '';
+            state.currencyMode = 'USD';
+            delete patch.currency;
+          } else {
+            state.currency = patch.currency;
+            delete patch.currency;
+          }
+        }
+        const hasRangePatch = Object.prototype.hasOwnProperty.call(patch, 'dateStart') || Object.prototype.hasOwnProperty.call(patch, 'dateEnd');
+        const hasSingleTimePatch = Object.prototype.hasOwnProperty.call(patch, 'date') || Object.prototype.hasOwnProperty.call(patch, 'period');
+        if (hasRangePatch) {
+          patch.date = '';
+          patch.period = '';
+        }
+        if (hasSingleTimePatch && !hasRangePatch && (patch.date || patch.period)) {
+          state.dateStart = '';
+          state.dateEnd = '';
+        }
+        Object.assign(state, patch);
+        if (hasRangePatch || hasSingleTimePatch) {
+          state.trendManual = false;
+          state.trendGrain = '';
+        }
+        if (patch.categoryL1 === '') {
+          state.categoryL2 = '';
+          state.categoryL3 = '';
+          categoryPath = [];
+        }
+        syncControls();
+        renderAll(options);
+      };
+
+      renderTrail = function enhancedRenderTrail() {
+        const rangeChip = state.dateStart || state.dateEnd
+          ? [`<button class="chip" data-clear-range="dateRange">日期区间: ${state.dateStart || '最早日期'} 至 ${state.dateEnd || '最新日期'} ×</button>`]
+          : [];
+        const chips = [
+          ['date','日期'], ['period','时间'], ['person','主体'], ['department','部门'],
+          ['categoryL1','一级'], ['categoryL2','二级'], ['categoryL3','三级'],
+          ['bankAccount','银行'], ['currency','交易币种'], ['importStatus','状态']
+        ].filter(([key]) => state[key] && !(key === 'period' && state.date)).map(([key, label]) => `<button class="chip" data-clear="${key}">${label}: ${state[key]} ×</button>`);
+        chips.unshift(...rangeChip);
+        chips.unshift(`<button class="chip" data-clear="currencyMode">金额: ${currentCurrencyLabel()} ×</button>`);
+        $('#filterTrail').innerHTML = chips.join('');
+      };
+
+      renderMetrics = function enhancedRenderMetrics(list) {
+        const cards = $$('.metric-card');
+        const confirmed = amountSum(list.filter(item => item.importStatus === 'normal' && item.transactionType === 'expense'));
+        const pending = amountSum(list.filter(item => item.importStatus !== 'normal' || item.categoryL1 === '未分类'));
+        const chartValues = periodValues(listWithOmit(['period', 'date']));
+        const peak = Math.max(...chartValues, 0);
+        if (cards[0]) cards[0].querySelector('.metric-value b').textContent = money(confirmed);
+        if (cards[1]) cards[1].querySelector('.metric-value b').textContent = money(amountSum(list));
+        if (cards[2]) cards[2].querySelector('.metric-value b').textContent = money(pending);
+        if (cards[3]) cards[3].querySelector('.metric-value b').textContent = money(peak || Math.max(...monthly));
+      };
+
+      function periodValues(baseList) {
+        const hasNonTimeFilter = ['person','department','categoryL1','categoryL2','categoryL3','bankAccount','currency','importStatus'].some(key => state[key]);
+        const hasTimeFilter = state.date || state.period || state.dateStart || state.dateEnd;
+        if (!hasNonTimeFilter && !hasTimeFilter) return monthly;
+        return allAnalysisPeriods().map(period => amountSum(baseList.filter(record => record.periodMonth === period)));
+      }
+
+      function allAnalysisPeriods() {
+        return [...new Set(periods.concat(records.map(record => record.periodMonth)))].sort();
+      }
+
+      function monthEndDate(period) {
+        return `${period}-${String(new Date(Number(period.slice(0, 4)), Number(period.slice(5, 7)), 0).getDate()).padStart(2, '0')}`;
+      }
+
+      function formatDateValue(date) {
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+      }
+
+      function parseDateValue(value) {
+        const [year, month, day] = value.split('-').map(Number);
+        return new Date(year, month - 1, day);
+      }
+
+      function addDays(value, days) {
+        const date = parseDateValue(value);
+        date.setDate(date.getDate() + days);
+        return formatDateValue(date);
+      }
+
+      function daysBetween(start, end) {
+        return Math.max(0, Math.round((parseDateValue(end) - parseDateValue(start)) / 86400000));
+      }
+
+      function currentDateWindow() {
+        const all = allAnalysisPeriods();
+        const firstPeriod = all[0] || periods[0];
+        const lastPeriod = all[all.length - 1] || periods[periods.length - 1];
+        if (state.date) return { start: state.date, end: state.date };
+        if (state.dateStart || state.dateEnd) {
+          return { start: state.dateStart || `${firstPeriod}-01`, end: state.dateEnd || monthEndDate(lastPeriod) };
+        }
+        if (state.period?.length === 4) return { start: `${state.period}-01-01`, end: `${state.period}-12-31` };
+        if (state.period?.length === 7) return { start: `${state.period}-01`, end: monthEndDate(state.period) };
+        return { start: `${firstPeriod}-01`, end: monthEndDate(lastPeriod) };
+      }
+
+      function trendDateWindow() {
+        const all = allAnalysisPeriods();
+        const firstPeriod = all[0] || periods[0];
+        const lastPeriod = all[all.length - 1] || periods[periods.length - 1];
+        if (state.date) {
+          const period = state.date.slice(0, 7);
+          return { start: `${period}-01`, end: monthEndDate(period) };
+        }
+        if (state.dateStart || state.dateEnd) {
+          return { start: state.dateStart || `${firstPeriod}-01`, end: state.dateEnd || monthEndDate(lastPeriod) };
+        }
+        if (state.period?.length === 4) return { start: `${state.period}-01-01`, end: `${state.period}-12-31` };
+        if (state.period?.length === 7) return { start: `${state.period}-01`, end: monthEndDate(state.period) };
+        return { start: `${firstPeriod}-01`, end: monthEndDate(lastPeriod) };
+      }
+
+      function defaultTrendGrain() {
+        const window = trendDateWindow();
+        const span = daysBetween(window.start, window.end) + 1;
+        if (state.period?.length === 4) return 'month';
+        if (state.period?.length === 7 || state.date) return 'day';
+        if (state.dateStart || state.dateEnd) {
+          if (span <= 62) return 'day';
+          if (span <= 370) return 'month';
+          return 'quarter';
+        }
+        return 'month';
+      }
+
+      function activeTrendGrain() {
+        return state.trendManual && state.trendGrain ? state.trendGrain : defaultTrendGrain();
+      }
+
+      function monthOverlapsSelection(period) {
+        const start = `${period}-01`;
+        const end = monthEndDate(period);
+        return (!state.dateStart || end >= state.dateStart) && (!state.dateEnd || start <= state.dateEnd);
+      }
+
+      function monthRange(start, end) {
+        const result = [];
+        let cursor = `${start.slice(0, 7)}-01`;
+        const finalMonth = end.slice(0, 7);
+        while (cursor.slice(0, 7) <= finalMonth) {
+          result.push(cursor.slice(0, 7));
+          const date = parseDateValue(cursor);
+          date.setMonth(date.getMonth() + 1);
+          cursor = formatDateValue(date);
+        }
+        return result;
+      }
+
+      function quarterLabelFromDate(dateValue) {
+        const year = dateValue.slice(0, 4);
+        const quarter = Math.floor((Number(dateValue.slice(5, 7)) - 1) / 3) + 1;
+        return `${year} Q${quarter}`;
+      }
+
+      function quarterWindow(year, quarter) {
+        const startMonth = (quarter - 1) * 3 + 1;
+        const start = `${year}-${String(startMonth).padStart(2, '0')}-01`;
+        const endPeriod = `${year}-${String(startMonth + 2).padStart(2, '0')}`;
+        return { start, end: monthEndDate(endPeriod) };
+      }
+
+      function bucketAmount(list, start, end) {
+        return amountSum(list.filter(record => record.date >= start && record.date <= end));
+      }
+
+      function analysisGrain() {
+        const window = currentDateWindow();
+        const span = daysBetween(window.start, window.end) + 1;
+        if (state.period?.length === 4) return 'month';
+        if (state.period?.length === 7 || state.date) return 'day';
+        if (state.dateStart || state.dateEnd) {
+          if (span <= 62) return 'day';
+          if (span <= 190) return 'week';
+          return 'month';
+        }
+        return 'month';
+      }
+
+      function analysisData() {
+        const grain = analysisGrain();
+        const window = currentDateWindow();
+        const list = filtered();
+        if (grain === 'day') {
+          const data = [];
+          for (let date = window.start; date <= window.end; date = addDays(date, 1)) {
+            data.push({ key: date, label: `${Number(date.slice(8, 10))}日`, value: bucketAmount(list, date, date), grain });
+          }
+          return data;
+        }
+        if (grain === 'week') {
+          const data = [];
+          let start = window.start;
+          let index = 1;
+          while (start <= window.end) {
+            const end = addDays(start, 6) > window.end ? window.end : addDays(start, 6);
+            data.push({ key: `${start}_${end}`, label: `W${index}`, value: bucketAmount(list, start, end), grain });
+            start = addDays(end, 1);
+            index += 1;
+          }
+          return data;
+        }
+        return monthRange(window.start, window.end).map(period => ({
+          key: period,
+          label: monthLabel(period),
+          value: bucketAmount(list, `${period}-01`, monthEndDate(period)),
+          grain
+        }));
+      }
+
+      function monthLabel(period) {
+        if (!period.includes('-')) return period;
+        return `${period.slice(2, 4)}/${Number(period.slice(5, 7))}`;
+      }
+
+      function compactLabels(data) {
+        const step = Math.max(1, Math.ceil(data.length / 9));
+        return data.map((item, index) => {
+          const text = index === 0 || index === data.length - 1 || index % step === 0 ? item.label : '';
+          return `<span>${text}</span>`;
+        }).join('');
+      }
+
+      function renderMonthlyAnalysis() {
+        const data = analysisData();
+        const maxValue = Math.max(...data.map(item => item.value), 1);
+        const minValue = Math.min(...data.map(item => item.value));
+        const peak = data.slice().sort((a, b) => b.value - a.value)[0] || data[0];
+        const total = data.reduce((sum, item) => sum + item.value, 0);
+        const volatility = maxValue ? ((maxValue - minValue) / maxValue * 100).toFixed(1) : '0.0';
+        $('#monthlyBars').innerHTML = data.map(item => {
+          const status = item.value === maxValue ? ' hot' : item.value >= maxValue * .75 ? ' warn' : '';
+          const periodAttr = item.key?.length === 7 ? ` data-period="${item.key}"` : '';
+          return `<span class="month-bar${status}"${periodAttr} title="${item.key} ${money(item.value)}" style="height:${Math.max(10, item.value / maxValue * 92)}%"></span>`;
+        }).join('');
+        const labels = $('.monthly-card .month-labels');
+        if (labels) {
+          labels.style.gridTemplateColumns = `repeat(${Math.max(data.length, 1)}, 1fr)`;
+          labels.innerHTML = compactLabels(data);
+        }
+        const summary = $('.monthly-card .monthly-summary');
+        const grainName = data[0]?.grain === 'day' ? '日' : data[0]?.grain === 'week' ? '周' : '月';
+        if (summary) {
+          summary.innerHTML = `
+            <span><b>${money(peak.value)}</b>峰值${grainName} ${peak.label}</span>
+            <span><b>${money(total)}</b>当前时间段累计</span>
+            <span><b>${volatility}%</b>${data.length} 个${grainName}波动</span>
+          `;
+        }
+        const mode = $('.monthly-card .small-select');
+        if (mode) mode.textContent = `${data.length}个${grainName}视图`;
+      }
+
+      function trendBuckets() {
+        const grain = activeTrendGrain();
+        const list = listWithOmit(['period', 'date', 'dateRange']);
+        const window = trendDateWindow();
+        if (grain === 'year') {
+          const startYear = Number(window.start.slice(0, 4));
+          const endYear = Number(window.end.slice(0, 4));
+          return Array.from({ length: endYear - startYear + 1 }, (_, index) => {
+            const year = String(startYear + index);
+            return { key: year, label: year, value: bucketAmount(list, `${year}-01-01`, `${year}-12-31`), grain, period: year };
+          });
+        }
+        if (grain === 'quarter') {
+          const data = [];
+          let year = Number(window.start.slice(0, 4));
+          let quarter = Math.floor((Number(window.start.slice(5, 7)) - 1) / 3) + 1;
+          const endYear = Number(window.end.slice(0, 4));
+          const endQuarter = Math.floor((Number(window.end.slice(5, 7)) - 1) / 3) + 1;
+          while (year < endYear || (year === endYear && quarter <= endQuarter)) {
+            const quarterWindowValue = quarterWindow(year, quarter);
+            const start = quarterWindowValue.start < window.start ? window.start : quarterWindowValue.start;
+            const end = quarterWindowValue.end > window.end ? window.end : quarterWindowValue.end;
+            data.push({ key: `${year}-Q${quarter}`, label: `${String(year).slice(2)}Q${quarter}`, value: bucketAmount(list, start, end), grain, start, end });
+            quarter += 1;
+            if (quarter > 4) {
+              quarter = 1;
+              year += 1;
+            }
+          }
+          return data;
+        }
+        if (grain === 'day') {
+          const data = [];
+          for (let date = window.start; date <= window.end; date = addDays(date, 1)) {
+            data.push({ key: date, label: `${Number(date.slice(8, 10))}日`, value: bucketAmount(list, date, date), grain, date });
+          }
+          return data;
+        }
+        return monthRange(window.start, window.end).map(period => ({
+          key: period,
+          label: monthLabel(period),
+          value: bucketAmount(list, `${period}-01`, monthEndDate(period)),
+          grain,
+          period
+        }));
+      }
+
+      function renderTrendOverview() {
+        const data = trendBuckets();
+        const selectedGrain = activeTrendGrain();
+        const maxValue = Math.max(...data.map(item => item.value), 1);
+        $('#rhythm').innerHTML = data.map(item => {
+          const isActive = (item.period && state.period === item.period) || (item.date && state.date === item.date);
+          const selectedDay = item.date && state.date === item.date;
+          const periodAttr = item.period ? ` data-period="${item.period}"` : '';
+          const rangeAttrs = item.start && item.end ? ` data-start="${item.start}" data-end="${item.end}"` : '';
+          const dateAttr = item.date ? ` data-date="${item.date}"` : '';
+          return `<span class="rhythm-bar${isActive ? ' is-filtered' : ''}${selectedDay ? ' selected-day' : ''}" data-trend-key="${item.key}" data-trend-type="${item.grain}"${periodAttr}${rangeAttrs}${dateAttr} title="${item.label} ${money(item.value)}" style="height:${Math.max(12, item.value / maxValue * 190)}px"></span>`;
+        }).join('');
+        const labels = $('.quarters');
+        if (labels) {
+          labels.style.gridTemplateColumns = `repeat(${Math.max(data.length, 1)}, 1fr)`;
+          labels.innerHTML = compactLabels(data);
+        }
+        const sorted = data.slice().sort((a, b) => b.value - a.value);
+        const peak = sorted[0] || data[0];
+        const second = sorted[1] || data[0];
+        const tip = $('.tooltip-card');
+        const tip2 = $('.tooltip-card.secondary');
+        if (tip && peak) tip.innerHTML = `<span>${peak.label}</span><b>${money(peak.value)}</b>`;
+        if (tip2 && second) tip2.innerHTML = `<span>${second.label}</span><b>${money(second.value)}</b>`;
+        $$('.trend-grain button').forEach(button => button.classList.toggle('active', button.dataset.trendGrain === selectedGrain));
+      }
+
+      renderCharts = function enhancedRenderCharts() {
+        renderTrendOverview();
+        renderMonthlyAnalysis();
+      };
+
+      renderCategoryLegend = function enhancedRenderCategoryLegend() {
+        const base = listWithOmit(['categoryL1','categoryL2','categoryL3']);
+        const grouped = new Map(groupedAmount(base, 'categoryL1'));
+        const colors = ['var(--pink)', 'var(--lime)', 'var(--blue)', 'var(--yellow)', 'var(--orange)', 'var(--green)'];
+        const names = [...new Set(Object.keys(categoryModel).concat([...grouped.keys()]))];
+        const items = names.map((name, index) => ({
+          name,
+          amount: grouped.get(name) || 0,
+          color: colors[index % colors.length]
+        })).sort((a, b) => b.amount - a.amount);
+        const total = items.reduce((sum, item) => sum + item.amount, 0);
+        const topCategory = items.find(item => item.amount > 0) || items[0];
+        const arcCenter = $('.arc-center');
+        const arc = $('.arc');
+        if (arc) {
+          if (total > 0) {
+            let cursor = 0;
+            const segments = items.filter(item => item.amount > 0).flatMap(item => {
+              const share = item.amount / total * 100;
+              const start = cursor;
+              const end = cursor + share;
+              const paintEnd = Math.max(start, end - .8);
+              cursor = end;
+              return [`${item.color} ${start.toFixed(2)}% ${paintEnd.toFixed(2)}%`, `transparent ${paintEnd.toFixed(2)}% ${end.toFixed(2)}%`];
+            });
+            arc.style.background = `conic-gradient(from 270deg at 50% 100%, ${segments.join(', ')})`;
+          } else {
+            arc.style.background = 'conic-gradient(from 270deg at 50% 100%, #e7edea 0% 100%)';
+          }
+        }
+        if (arcCenter && topCategory) {
+          const topShare = total ? (topCategory.amount / total * 100).toFixed(1) : '0.0';
+          arcCenter.innerHTML = `<span>${total ? `最大费用 · ${topShare}%` : '当前口径无数据'}</span><b>${topCategory.name}</b><strong>${money(topCategory.amount)}</strong>`;
+        }
+        $('.dist-legend').innerHTML = items.map(item => {
+          const share = total ? item.amount / total * 100 : 0;
+          return `<div class="legend-item ${state.categoryL1 === item.name ? 'is-filtered' : ''}" data-category="${item.name}">
+            <div class="legend-head"><span class="legend-name"><span class="dot" style="background:${item.color}"></span>${item.name}</span><b>${money(item.amount)}</b></div>
+            <div class="legend-share" style="--share:${share.toFixed(1)}%; --legend-color:${item.color}"><i></i><span>${share.toFixed(1)}%</span></div>
+          </div>`;
+        }).join('');
+      };
+
+      currentCategoryItems = function enhancedCurrentCategoryItems() {
+        if (!categoryPath.length) {
+          const grouped = new Map(groupedAmount(listWithOmit(['categoryL1','categoryL2','categoryL3']), 'categoryL1'));
+          return Object.keys(categoryModel).map(name => ({ name, amount: grouped.get(name) || 0, level: 1, child: true }));
+        }
+        if (categoryPath.length === 1) {
+          const base = records.filter(record => matchRecord(record, ['categoryL2','categoryL3']) && record.categoryL1 === categoryPath[0]);
+          const grouped = new Map(groupedAmount(base, 'categoryL2'));
+          return Object.keys(categoryModel[categoryPath[0]].children).map(name => ({ name, amount: grouped.get(name) || 0, level: 2, child: true }));
+        }
+        const base = records.filter(record => matchRecord(record, ['categoryL3']) && record.categoryL1 === categoryPath[0] && record.categoryL2 === categoryPath[1]);
+        const grouped = new Map(groupedAmount(base, 'categoryL3'));
+        return Object.keys(categoryModel[categoryPath[0]].children[categoryPath[1]].children).map(name => ({ name, amount: grouped.get(name) || 0, level: 3, child: false }));
+      };
+
+      renderCategoryDrill = function enhancedRenderCategoryDrill() {
+        const title = categoryPath.length ? `当前路径：${categoryPath.join(' / ')}` : '点击一级分类后展开二级/三级分类';
+        $('#categoryDrill').innerHTML = `<span class="chip neutral">${title}</span>` + currentCategoryItems().map(item =>
+          `<button class="drill-item ${isCategoryActiveEnhanced(item) ? 'active' : ''}" data-drill-level="${item.level}" data-drill-name="${item.name}"><span>${item.name}<small>${item.child ? '点击展开下一级' : '点击锁定三级分类'}</small></span><b>${money(item.amount)}</b></button>`
+        ).join('');
+      };
+
+      function isCategoryActiveEnhanced(item) {
+        if (item.level === 1) return state.categoryL1 === item.name;
+        if (item.level === 2) return state.categoryL2 === item.name;
+        return state.categoryL3 === item.name;
+      }
+
+      renderDepartmentList = function enhancedRenderDepartmentList() {
+        const grouped = groupedAmount(listWithOmit(['department']), 'department');
+        const source = grouped.length ? grouped : Object.entries(departmentModel).map(([name]) => [name, 0]);
+        $('.country-list').innerHTML = source.map(([name, amount], index) =>
+          `<div class="country-row ${state.department === name ? 'is-filtered' : ''}" data-department="${name}"><span>${name}</span><span class="change ${index === 0 ? 'down' : ''}">${money(amount)}</span></div>`
+        ).join('');
+      };
+
+      renderDepartmentDetail = function enhancedRenderDepartmentDetail() {
+        const base = state.department ? filtered() : listWithOmit(['department']);
+        const autoDept = groupedAmount(base, 'department')[0]?.[0] || state.department || '全部部门';
+        const deptName = state.department || autoDept;
+        const detailList = deptName === '全部部门' ? base : base.filter(record => record.department === deptName);
+        const title = `${deptName}${state.categoryL1 ? ` / ${state.categoryL1}` : ''}${state.categoryL2 ? ` / ${state.categoryL2}` : ''}`;
+        $('#deptSummary').innerHTML = `<span><b>${money(amountSum(detailList))}</b>${title}</span><span><b>${detailList.length} 笔</b>当前筛选命中</span><span><b>${currentCurrencyLabel()}</b>金额口径</span>`;
+        const lastPeriods = periods.slice(-6);
+        const max = Math.max(...lastPeriods.map(period => amountSum(detailList.filter(record => record.periodMonth === period))), 1);
+        $('#deptTrend').innerHTML = lastPeriods.map(period => {
+          const value = amountSum(detailList.filter(record => record.periodMonth === period));
+          return `<span title="${period} ${money(value)}" style="height:${Math.max(8, value / max * 92)}%"></span>`;
+        }).join('');
+        const top = detailList.slice().sort((a, b) => b.amountCNY - a.amountCNY).slice(0, 4);
+        $('#deptTopList').innerHTML = top.length ? top.map(record => `<button class="drill-item" data-row="${record.sourceRowNo}"><span>${record.categoryL2} / ${record.categoryL3}<small>${record.date}｜${record.bankAccount}</small></span><b>${money(record.amountCNY)}</b></button>`).join('') : '<span class="chip neutral">当前口径下暂无部门明细</span>';
+      };
+
+      renderTable = function enhancedRenderTable(list) {
+        $('#recordRows').innerHTML = list.length ? list.slice(0, 10).map(record => `
+          <tr data-row="${record.sourceRowNo}"><td>${record.date}</td><td>${record.person}</td><td>${record.department}</td><td>${record.categoryL1} / ${record.categoryL3}</td><td>${record.bankAccount}</td><td class="num">${money(record.amountCNY)}</td><td><span class="status ${record.importStatus === 'normal' ? '' : 'warn'}">${record.transactionType}</span></td><td>#${record.sourceRowNo}</td></tr>
+        `).join('') : '<tr><td colspan="8">当前筛选没有匹配明细，点击“重置”恢复全部数据。</td></tr>';
+      };
+
+      openDrawer = function enhancedOpenDrawer(title, subtitle, list = filtered(), extraReasons = []) {
+        const total = amountSum(list);
+        const max = list.slice().sort((a, b) => b.amountCNY - a.amountCNY)[0];
+        $('#drawerTitle').textContent = title;
+        $('#drawerSubtitle').textContent = `${subtitle}｜${currentCurrencyLabel()}`;
+        $('#drawerKpis').innerHTML = `<span><b>${money(total)}</b>当前金额</span><span><b>${list.length} 笔</b>命中明细</span><span><b>${max ? money(max.amountCNY) : money(0)}</b>最大单笔</span>`;
+        const categoryTop = groupedAmount(list, 'categoryL1')[0];
+        const deptTop = groupedAmount(list, 'department')[0];
+        const reasons = extraReasons.concat([`Top 分类：${categoryTop?.[0] || '无'} ${money(categoryTop?.[1] || 0)}`, `Top 部门：${deptTop?.[0] || '无'} ${money(deptTop?.[1] || 0)}`, '图表点击、日历点击和筛选表使用同一套筛选状态。']);
+        $('#drawerReasons').innerHTML = reasons.map(reason => `<li>${reason}</li>`).join('');
+        $('#drawerTop').innerHTML = list.slice().sort((a, b) => b.amountCNY - a.amountCNY).slice(0, 6).map(record => `<li><b>#${record.sourceRowNo}</b> ${record.date}｜${record.department}｜${record.categoryL1}/${record.categoryL3}<br>${record.bankAccount}｜原币 ${record.currency}｜当前 ${money(record.amountCNY)}</li>`).join('') || '<li>当前没有可展示的 Top 明细。</li>';
+        $('#drawerBackdrop').classList.add('open');
+        $('#detailDrawer').classList.add('open');
+      };
+
+      renderAll = function enhancedRenderAll(options = {}) {
+        const list = filtered();
+        renderTrail();
+        renderSavedViews();
+        renderMetrics(list);
+        renderCharts();
+        renderCategoryLegend();
+        renderCategoryDrill();
+        renderDepartmentList();
+        renderDepartmentDetail();
+        renderTable(list);
+        renderCalendar();
+        if (options.openDrawer) openDrawer(options.drawerTitle || '当前筛选明细', options.drawerSubtitle || '筛选已联动到 KPI、图表和明细表。', list);
+      };
+
+      $('#calendarYear').addEventListener('change', event => {
+        const year = event.target.value;
+        if (calendarMode === 'range') calendarMode = 'month';
+        if (calendarMode === 'year') setState({ period: year, date: '' });
+        else setState({ period: `${year}-${$('#calendarMonth').value}`, date: '' });
+      });
+
+      $('#calendarMonth').addEventListener('change', event => {
+        const period = `${$('#calendarYear').value}-${event.target.value}`;
+        calendarMode = calendarMode === 'year' || calendarMode === 'range' ? 'month' : calendarMode;
+        setState({ period, date: '' });
+      });
+
+      $('#calendarApplyRange').addEventListener('click', () => {
+        const start = $('#calendarStart').value;
+        const end = $('#calendarEnd').value;
+        const orderedStart = start && end && start > end ? end : start;
+        const orderedEnd = start && end && start > end ? start : end;
+        calendarMode = orderedStart || orderedEnd ? 'range' : 'month';
+        setState({ dateStart: orderedStart, dateEnd: orderedEnd, date: '', period: '' });
+      });
+
+      document.body.addEventListener('click', event => {
+        const clearRange = event.target.closest('[data-clear-range]');
+        const trendGrain = event.target.closest('[data-trend-grain]');
+        const trendBar = event.target.closest('.rhythm-bar[data-trend-key]');
+        const grain = event.target.closest('[data-calendar-grain]');
+        const monthButton = event.target.closest('[data-month-picker]');
+        const day = event.target.closest('.day[data-date]');
+        const monthBar = event.target.closest('.month-bar, .rhythm-bar');
+        const legend = event.target.closest('[data-category]');
+        const drill = event.target.closest('[data-drill-level]');
+        const dept = event.target.closest('[data-department]');
+        const metric = event.target.closest('.metric-card');
+        const row = event.target.closest('[data-row]');
+
+        if (clearRange || trendGrain || trendBar || grain || monthButton || day || monthBar || legend || drill || dept || metric || row) {
+          event.stopImmediatePropagation();
+        }
+
+        if (clearRange) {
+          calendarMode = 'month';
+          setState({ dateStart: '', dateEnd: '', date: '', period: '' });
+          return;
+        }
+        if (trendGrain) {
+          state.trendManual = true;
+          state.trendGrain = trendGrain.dataset.trendGrain;
+          renderAll();
+          return;
+        }
+        if (trendBar) {
+          const type = trendBar.dataset.trendType;
+          if (type === 'year') {
+            calendarMode = 'year';
+            setState({ period: trendBar.dataset.period, date: '' }, { openDrawer: true, drawerTitle: '年度费用趋势', drawerSubtitle: `${trendBar.dataset.period} 已联动到全页` });
+          } else if (type === 'quarter') {
+            calendarMode = 'range';
+            setState({ dateStart: trendBar.dataset.start, dateEnd: trendBar.dataset.end, date: '', period: '' }, { openDrawer: true, drawerTitle: '季度费用趋势', drawerSubtitle: `${trendBar.dataset.start} 至 ${trendBar.dataset.end}` });
+          } else if (type === 'day') {
+            calendarMode = 'day';
+            setState({ period: trendBar.dataset.date.slice(0, 7), date: trendBar.dataset.date }, { openDrawer: true, drawerTitle: '日度费用趋势', drawerSubtitle: `${trendBar.dataset.date} 已联动到全页` });
+          } else if (trendBar.dataset.period) {
+            calendarMode = 'month';
+            setState({ period: trendBar.dataset.period, date: '' }, { openDrawer: true, drawerTitle: '月度费用趋势', drawerSubtitle: `${trendBar.dataset.period} 已联动到全页` });
+          }
+          return;
+        }
+        if (grain) {
+          calendarMode = grain.dataset.calendarGrain;
+          const year = $('#calendarYear').value;
+          const month = $('#calendarMonth').value;
+          if (calendarMode === 'year') setState({ period: year, date: '' });
+          if (calendarMode === 'month') setState({ period: `${year}-${month}`, date: '' });
+          if (calendarMode === 'day') { syncControls(); renderCalendar(); }
+          if (calendarMode === 'range') { syncControls(); renderCalendar(); }
+          return;
+        }
+        if (monthButton) {
+          calendarMode = 'month';
+          const [year, month] = monthButton.dataset.monthPicker.split('-');
+          $('#calendarYear').value = year;
+          $('#calendarMonth').value = month;
+          setState({ period: monthButton.dataset.monthPicker, date: '' });
+          return;
+        }
+        if (day) {
+          calendarMode = 'day';
+          setState({ period: day.dataset.date.slice(0, 7), date: day.dataset.date });
+          return;
+        }
+        if (monthBar?.dataset.period) {
+          calendarMode = 'month';
+          const [year, month] = monthBar.dataset.period.split('-');
+          $('#calendarYear').value = year;
+          $('#calendarMonth').value = month;
+          setState({ period: monthBar.dataset.period, date: '' }, { openDrawer: true, drawerTitle: '月度异常点拆解', drawerSubtitle: `${monthBar.dataset.period} 已联动到全页` });
+          return;
+        }
+        if (legend) {
+          categoryPath = [legend.dataset.category];
+          setState({ categoryL1: legend.dataset.category, categoryL2: '', categoryL3: '' }, { openDrawer: true, drawerTitle: '一级分类钻取', drawerSubtitle: `${legend.dataset.category} 已作为筛选条件` });
+          return;
+        }
+        if (drill) {
+          const level = Number(drill.dataset.drillLevel);
+          const name = drill.dataset.drillName;
+          if (level === 1) {
+            categoryPath = [name];
+            setState({ categoryL1: name, categoryL2: '', categoryL3: '' });
+          } else if (level === 2) {
+            categoryPath = [state.categoryL1 || categoryPath[0], name];
+            setState({ categoryL2: name, categoryL3: '' });
+          } else {
+            setState({ categoryL3: name }, { openDrawer: true, drawerTitle: '三级分类明细', drawerSubtitle: `${categoryPath.join(' / ')} / ${name}` });
+          }
+          return;
+        }
+        if (dept) {
+          setState({ department: dept.dataset.department }, { openDrawer: true, drawerTitle: '部门费用详情', drawerSubtitle: `${dept.dataset.department} + 当前筛选条件` });
+          return;
+        }
+        if (row) {
+          const record = records.find(item => String(item.sourceRowNo) === row.dataset.row);
+          if (record) openDrawer('原始流水追溯', `sourceRowNo #${record.sourceRowNo}`, [record], ['可回到 Excel 原始行核对摘要、账户、分类和金额。']);
+          return;
+        }
+        if (metric) {
+          const index = $$('.metric-card').indexOf(metric);
+          if (index === 2) {
+            categoryPath = ['未分类'];
+            setState({ importStatus: 'pending_classify', categoryL1: '未分类', categoryL2: '', categoryL3: '' }, { openDrawer: true, drawerTitle: '待归类列表', drawerSubtitle: '未分类金额已变成全局筛选条件' });
+          } else if (index === 3) {
+            setState({ period: '2025-12', date: '' }, { openDrawer: true, drawerTitle: '峰值月份异常点', drawerSubtitle: '2025-12 已作为全局时间条件' });
+          } else {
+            openDrawer(index === 0 ? '确认费用口径' : '原始流水口径', metric.dataset.tip || '当前卡片口径', filtered());
+          }
+        }
+      }, true);
+
+      $('#filterCurrency').addEventListener('change', event => setState({ currency: event.target.value }));
+
+      renderAll();
+    })();
+  </script>
+</body>
+</html>

@@ -40,6 +40,7 @@ function App() {
   const currentPage = useAppStore((state) => state.currentPage);
   const undoFilter = useAppStore((state) => state.undoFilter);
   const redoFilter = useAppStore((state) => state.redoFilter);
+  const filter = useAppStore((state) => state.filter);
 
   const [cacheState, setCacheState] = useState<CacheState>('checking');
 
@@ -181,8 +182,8 @@ function App() {
     );
   }
 
-  // 数据搜索 page
-  if (currentPage === '数据搜索') {
+  // 数据搜索 page → now 明细查询
+  if (currentPage === '明细查询') {
     return (
       <Layout>
         <DataSearchPage />
@@ -205,12 +206,16 @@ function App() {
 
   return (
     <Layout rightPanel={rightPanel}>
-      {/* Head row: section heading + action buttons */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '22px' }}>
+      {/* Head row: section heading + status display */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
         <h2 className="card-title-bar pink" style={{ fontSize: '18px' }}>总览</h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <button style={{ height: '34px', padding: '0 12px', border: '1px solid var(--line)', borderRadius: '4px', background: 'var(--surface)', color: '#333', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>📅 日期范围</button>
-          <button style={{ height: '34px', padding: '0 12px', border: '1px solid var(--line)', borderRadius: '4px', background: 'var(--surface)', color: '#333', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>全部主体</button>
+          <span style={{ height: '34px', padding: '0 12px', border: '1px solid var(--line)', borderRadius: '4px', background: 'var(--surface)', color: '#333', fontWeight: 700, fontSize: '12px', display: 'flex', alignItems: 'center' }}>
+            📅 {filter.date || filter.period || (filter.dateStart ? `${filter.dateStart} ~ ${filter.dateEnd}` : '全部日期')}
+          </span>
+          <span style={{ height: '34px', padding: '0 12px', border: '1px solid var(--line)', borderRadius: '4px', background: 'var(--surface)', color: '#333', fontWeight: 700, fontSize: '12px', display: 'flex', alignItems: 'center' }}>
+            👤 {filter.person || '全部主体'}
+          </span>
           <button style={{ height: '34px', padding: '0 12px', border: '1px solid var(--line)', borderRadius: '4px', background: 'var(--surface)', color: '#333', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>导出 ↗</button>
         </div>
       </div>
@@ -219,12 +224,12 @@ function App() {
       <FilterPanel />
 
       {/* KPI 卡片 */}
-      <div style={{ marginTop: '16px' }}>
+      <div style={{ marginTop: '12px' }}>
         <KpiCards />
       </div>
 
       {/* dashboard-grid: 费用趋势总览 + (费用口径 + 月度累计分析) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.08fr .92fr', gap: '12px', marginTop: '18px', minHeight: '386px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.08fr .92fr', gap: '12px', marginTop: '12px', minHeight: '386px' }}>
         <TrendOverview />
         <div style={{ display: 'grid', gridTemplateRows: '148px minmax(0, 1fr)', gap: '12px' }}>
           <ExpenseScopeCard />

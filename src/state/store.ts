@@ -11,7 +11,7 @@ import { DEFAULT_FILTER_STATE } from '../utils/constants';
 import { isTimeFieldChange } from './filterActions';
 
 /** 页面导航类型 */
-export type PageKey = '总览' | '数据导入' | '费用治理' | '数据搜索';
+export type PageKey = '总览' | '数据导入' | '费用治理' | '明细查询';
 
 /** 应用状态接口 */
 export interface AppState {

@@ -39,7 +39,6 @@ function actionLabel(record: ExpenseRecord): string {
 export default function ExpenseTable() {
   const records = useAppStore((s) => s.records);
   const filter = useAppStore((s) => s.filter);
-  const openDrawer = useAppStore((s) => s.openDrawer);
   const setCurrentPage = useAppStore((s) => s.setCurrentPage);
   const updateFilter = useAppStore((s) => s.updateFilter);
 
@@ -56,18 +55,9 @@ export default function ExpenseTable() {
       .slice(0, 10);
   }, [records, filter]);
 
-  const handleRowClick = useCallback((record: ExpenseRecord) => {
-    openDrawer({
-      type: 'detail',
-      title: '原始流水追溯',
-      amount: record.amountCNY,
-      recordCount: 1,
-      maxSingle: record.amountCNY,
-      topCategories: [{ name: record.categoryL1, amount: record.amountCNY }],
-      topDepartments: [{ name: record.department, amount: record.amountCNY }],
-      topRecords: [record],
-    });
-  }, [openDrawer]);
+  const handleRowClick = useCallback((_record: ExpenseRecord) => {
+    // No drawer on row click - only DepartmentDetail top records open drawer
+  }, []);
 
   const handleCategoryClick = useCallback((e: React.MouseEvent, categoryL1: string) => {
     e.stopPropagation();
@@ -100,7 +90,7 @@ export default function ExpenseTable() {
   }, [setCurrentPage, handleRowClick]);
 
   const handleViewAll = useCallback(() => {
-    setCurrentPage('数据搜索');
+    setCurrentPage('明细查询');
   }, [setCurrentPage]);
 
   const handleViewPending = useCallback(() => {
@@ -263,12 +253,12 @@ const styles: Record<string, React.CSSProperties> = {
     whiteSpace: 'nowrap',
   },
   actionBtnWarn: {
-    borderColor: 'var(--orange)',
+    border: '1px solid var(--orange)',
     color: 'var(--orange)',
     background: 'var(--orange-2)',
   },
   actionBtnDanger: {
-    borderColor: 'var(--pink)',
+    border: '1px solid var(--pink)',
     color: 'var(--pink)',
     background: 'var(--pink-2)',
   },

@@ -1,8 +1,8 @@
 /**
- * 数据搜索页面
- * 独立筛选条 + 关键词搜索 + 结果表格
- * 使用自己的本地筛选状态，不影响总览页面的全局筛选
- * 支持：时间区间、部门、分类、主体、银行账户、导入状态、币种 筛选
+ * 明细查询页面
+ * 与总览页面全局筛选联动：以全局 filter 为基础
+ * 在此基础上支持本页额外的筛选条件和关键词搜索
+ * 展示总览筛选条件下的完整明细表
  */
 
 import { useMemo, useState, useCallback } from 'react';
@@ -10,20 +10,31 @@ import { useAppStore } from '../../state/store';
 import { filterRecords } from '../../data/selectors';
 import { displayMoney } from '../../utils/currencyUtils';
 import { DEFAULT_USD_RATE } from '../../utils/constants';
-import { DEFAULT_FILTER_STATE } from '../../utils/constants';
 import type { FilterState } from '../../types/expense';
 
 type SortBy = 'date' | 'amount';
 
 export function DataSearchPage() {
   const records = useAppStore((s) => s.records);
+  const globalFilter = useAppStore((s) => s.filter);
 
-  // Local filter state — independent from global filter
-  const [localFilter, setLocalFilter] = useState<FilterState>({ ...DEFAULT_FILTER_STATE });
+  // Local additional filters (layered on top of global filter)
+  const [localOverrides, setLocalOverrides] = useState<Partial<FilterState>>({});
   const [keyword, setKeyword] = useState('');
   const [sortBy, setSortBy] = useState<SortBy>('date');
 
-  // Extract unique values for filter dropdowns
+  // Merge: global filter + local overrides (local overrides only apply non-empty values)
+  const effectiveFilter = useMemo((): FilterState => {
+    const merged = { ...globalFilter };
+    for (const [key, value] of Object.entries(localOverrides)) {
+      if (value !== undefined && value !== '') {
+        (merged as Record<string, unknown>)[key] = value;
+      }
+    }
+    return merged;
+  }, [globalFilter, localOverrides]);
+
+  // Extract unique values for filter dropdowns (from all records, not filtered)
   const options = useMemo(() => {
     const persons = new Set<string>();
     const departments = new Set<string>();
@@ -43,121 +54,102 @@ export function DataSearchPage() {
     };
   }, [records]);
 
-  // Apply local filter first, then keyword search on top
+  // Apply effective filter, then keyword search
   const searchResults = useMemo(() => {
-    let result = filterRecords(records, localFilter);
+    let result = filterRecords(records, effectiveFilter);
     if (keyword.trim()) {
       const kw = keyword.trim().toLowerCase();
-      result = result.filter((r) => {
-        return (
-          r.date.toLowerCase().includes(kw) ||
-          r.department.toLowerCase().includes(kw) ||
-          r.categoryL1.toLowerCase().includes(kw) ||
-          r.categoryL2.toLowerCase().includes(kw) ||
-          r.categoryL3.toLowerCase().includes(kw) ||
-          r.person.toLowerCase().includes(kw) ||
-          r.bankAccount.toLowerCase().includes(kw) ||
-          r.periodMonth.toLowerCase().includes(kw) ||
-          r.currency.toLowerCase().includes(kw) ||
-          String(r.amountCNY).includes(kw) ||
-          String(r.sourceRowNo).includes(kw)
-        );
-      });
+      result = result.filter((r) => (
+        r.date.toLowerCase().includes(kw) ||
+        r.department.toLowerCase().includes(kw) ||
+        r.categoryL1.toLowerCase().includes(kw) ||
+        r.categoryL2.toLowerCase().includes(kw) ||
+        r.categoryL3.toLowerCase().includes(kw) ||
+        r.person.toLowerCase().includes(kw) ||
+        r.bankAccount.toLowerCase().includes(kw) ||
+        r.periodMonth.toLowerCase().includes(kw) ||
+        r.currency.toLowerCase().includes(kw) ||
+        String(r.amountCNY).includes(kw) ||
+        String(r.sourceRowNo).includes(kw)
+      ));
     }
-    // Sort
     if (sortBy === 'amount') {
       result = [...result].sort((a, b) => b.amountCNY - a.amountCNY);
     } else {
       result = [...result].sort((a, b) => b.date.localeCompare(a.date));
     }
     return result.slice(0, 200);
-  }, [records, localFilter, keyword, sortBy]);
+  }, [records, effectiveFilter, keyword, sortBy]);
 
-  const handleFilterChange = useCallback((field: string, value: string) => {
-    setLocalFilter((prev) => ({ ...prev, [field]: value }));
+  const handleLocalChange = useCallback((field: string, value: string) => {
+    setLocalOverrides((prev) => ({ ...prev, [field]: value }));
   }, []);
 
-  const handleResetFilters = useCallback(() => {
-    setLocalFilter({ ...DEFAULT_FILTER_STATE });
+  const handleResetLocal = useCallback(() => {
+    setLocalOverrides({});
     setKeyword('');
   }, []);
 
+  // Show active global filters as context
+  const globalFilterSummary = useMemo(() => {
+    const parts: string[] = [];
+    if (globalFilter.period) parts.push(`时间: ${globalFilter.period}`);
+    if (globalFilter.date) parts.push(`日期: ${globalFilter.date}`);
+    if (globalFilter.dateStart && globalFilter.dateEnd) parts.push(`区间: ${globalFilter.dateStart}~${globalFilter.dateEnd}`);
+    if (globalFilter.department) parts.push(`部门: ${globalFilter.department}`);
+    if (globalFilter.categoryL1) parts.push(`分类: ${globalFilter.categoryL1}`);
+    if (globalFilter.person) parts.push(`主体: ${globalFilter.person}`);
+    return parts;
+  }, [globalFilter]);
+
   return (
     <div style={styles.page}>
-      <h2 style={styles.pageTitle}>数据搜索</h2>
+      <h2 style={styles.pageTitle}>明细查询</h2>
 
-      {/* Filter bar */}
+      {/* Global filter context display */}
+      {globalFilterSummary.length > 0 && (
+        <div style={styles.globalContext}>
+          <span style={styles.contextLabel}>当前总览筛选：</span>
+          {globalFilterSummary.map((part, i) => (
+            <span key={i} style={styles.contextChip}>{part}</span>
+          ))}
+        </div>
+      )}
+
+      {/* Local filter bar (additional refinement) */}
       <div style={styles.filterBar}>
         <div style={styles.filterControl}>
-          <label style={styles.filterLabel}>日期起</label>
-          <input
-            type="date"
-            value={localFilter.dateStart}
-            onChange={(e) => handleFilterChange('dateStart', e.target.value)}
-            style={styles.filterInput}
-          />
-        </div>
-        <div style={styles.filterControl}>
-          <label style={styles.filterLabel}>日期止</label>
-          <input
-            type="date"
-            value={localFilter.dateEnd}
-            onChange={(e) => handleFilterChange('dateEnd', e.target.value)}
-            style={styles.filterInput}
-          />
-        </div>
-        <div style={styles.filterControl}>
-          <label style={styles.filterLabel}>主体</label>
-          <select
-            value={localFilter.person}
-            onChange={(e) => handleFilterChange('person', e.target.value)}
-            style={styles.filterSelect}
-          >
-            <option value="">全部</option>
-            {options.persons.map((p) => <option key={p} value={p}>{p}</option>)}
-          </select>
-        </div>
-        <div style={styles.filterControl}>
-          <label style={styles.filterLabel}>部门/项目</label>
-          <select
-            value={localFilter.department}
-            onChange={(e) => handleFilterChange('department', e.target.value)}
-            style={styles.filterSelect}
-          >
-            <option value="">全部</option>
+          <label style={styles.filterLabel}>部门</label>
+          <select value={localOverrides.department ?? ''} onChange={(e) => handleLocalChange('department', e.target.value)} style={styles.filterSelect}>
+            <option value="">{globalFilter.department || '全部'}</option>
             {options.departments.map((d) => <option key={d} value={d}>{d}</option>)}
           </select>
         </div>
         <div style={styles.filterControl}>
+          <label style={styles.filterLabel}>主体</label>
+          <select value={localOverrides.person ?? ''} onChange={(e) => handleLocalChange('person', e.target.value)} style={styles.filterSelect}>
+            <option value="">{globalFilter.person || '全部'}</option>
+            {options.persons.map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </div>
+        <div style={styles.filterControl}>
           <label style={styles.filterLabel}>一级分类</label>
-          <select
-            value={localFilter.categoryL1}
-            onChange={(e) => handleFilterChange('categoryL1', e.target.value)}
-            style={styles.filterSelect}
-          >
-            <option value="">全部</option>
+          <select value={localOverrides.categoryL1 ?? ''} onChange={(e) => handleLocalChange('categoryL1', e.target.value)} style={styles.filterSelect}>
+            <option value="">{globalFilter.categoryL1 || '全部'}</option>
             {options.categoriesL1.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
         <div style={styles.filterControl}>
           <label style={styles.filterLabel}>银行账户</label>
-          <select
-            value={localFilter.bankAccount}
-            onChange={(e) => handleFilterChange('bankAccount', e.target.value)}
-            style={styles.filterSelect}
-          >
-            <option value="">全部</option>
+          <select value={localOverrides.bankAccount ?? ''} onChange={(e) => handleLocalChange('bankAccount', e.target.value)} style={styles.filterSelect}>
+            <option value="">{globalFilter.bankAccount || '全部'}</option>
             {options.bankAccounts.map((b) => <option key={b} value={b}>{b}</option>)}
           </select>
         </div>
         <div style={styles.filterControl}>
           <label style={styles.filterLabel}>状态</label>
-          <select
-            value={localFilter.importStatus}
-            onChange={(e) => handleFilterChange('importStatus', e.target.value)}
-            style={styles.filterSelect}
-          >
-            <option value="">全部</option>
+          <select value={localOverrides.importStatus ?? ''} onChange={(e) => handleLocalChange('importStatus', e.target.value)} style={styles.filterSelect}>
+            <option value="">{globalFilter.importStatus ? (globalFilter.importStatus === 'normal' ? '正常' : globalFilter.importStatus === 'pending_classify' ? '待分类' : '异常') : '全部'}</option>
             <option value="normal">正常</option>
             <option value="pending_classify">待分类</option>
             <option value="abnormal">异常</option>
@@ -165,22 +157,18 @@ export function DataSearchPage() {
         </div>
         <div style={styles.filterControl}>
           <label style={styles.filterLabel}>币种</label>
-          <select
-            value={localFilter.currency}
-            onChange={(e) => handleFilterChange('currency', e.target.value)}
-            style={styles.filterSelect}
-          >
-            <option value="">全部</option>
+          <select value={localOverrides.currency ?? ''} onChange={(e) => handleLocalChange('currency', e.target.value)} style={styles.filterSelect}>
+            <option value="">{globalFilter.currency ? (globalFilter.currency === 'RMB' ? '人民币' : '美元') : '全部'}</option>
             <option value="RMB">人民币</option>
             <option value="USD">美元</option>
           </select>
         </div>
         <div style={styles.filterActions}>
-          <button style={styles.resetBtn} onClick={handleResetFilters}>重置</button>
+          <button style={styles.resetBtn} onClick={handleResetLocal}>重置本页</button>
         </div>
       </div>
 
-      {/* Search input */}
+      {/* Search + sort */}
       <div style={styles.searchRow}>
         <input
           type="text"
@@ -191,28 +179,16 @@ export function DataSearchPage() {
           aria-label="搜索关键词"
         />
         <span style={styles.resultCount}>
-          {keyword.trim() ? `找到 ${searchResults.length} 条结果` : `共 ${searchResults.length} 条记录`}
+          共 {searchResults.length} 条{keyword.trim() ? '（已搜索）' : ''}
         </span>
       </div>
-
-      {/* Sort buttons */}
       <div style={styles.sortRow}>
         <span style={styles.sortLabel}>排序:</span>
-        <button
-          style={{ ...styles.sortBtn, ...(sortBy === 'date' ? styles.sortBtnActive : {}) }}
-          onClick={() => setSortBy('date')}
-        >
-          按日期
-        </button>
-        <button
-          style={{ ...styles.sortBtn, ...(sortBy === 'amount' ? styles.sortBtnActive : {}) }}
-          onClick={() => setSortBy('amount')}
-        >
-          按金额
-        </button>
+        <button style={{ ...styles.sortBtn, ...(sortBy === 'date' ? styles.sortBtnActive : {}) }} onClick={() => setSortBy('date')}>按日期</button>
+        <button style={{ ...styles.sortBtn, ...(sortBy === 'amount' ? styles.sortBtnActive : {}) }} onClick={() => setSortBy('amount')}>按金额</button>
       </div>
 
-      {/* Results */}
+      {/* Table */}
       {searchResults.length === 0 ? (
         <div style={styles.hint}>没有找到匹配的记录</div>
       ) : (
@@ -233,37 +209,28 @@ export function DataSearchPage() {
               </thead>
               <tbody>
                 {searchResults.map((record, index) => (
-                  <tr
-                    key={record.id}
-                    style={{ ...styles.tr, backgroundColor: index % 2 === 0 ? 'var(--surface)' : '#f8faf8' }}
-                  >
+                  <tr key={record.id} style={{ ...styles.tr, backgroundColor: index % 2 === 0 ? 'var(--surface)' : '#f8faf8' }}>
                     <td style={styles.td}>{record.date}</td>
                     <td style={styles.td}>{record.person}</td>
                     <td style={styles.td}>{record.department}</td>
-                    <td style={styles.td}>
-                      {record.categoryL1}{record.categoryL3 ? ` / ${record.categoryL3}` : ''}
-                    </td>
+                    <td style={styles.td}>{record.categoryL1}{record.categoryL3 ? ` / ${record.categoryL3}` : ''}</td>
                     <td style={styles.td}>{record.bankAccount}</td>
                     <td style={{ ...styles.td, textAlign: 'right', fontWeight: 600, color: 'var(--green)' }}>
-                      {displayMoney(record.amountCNY, localFilter.currencyMode, DEFAULT_USD_RATE)}
+                      {displayMoney(record.amountCNY, effectiveFilter.currencyMode, DEFAULT_USD_RATE)}
                     </td>
                     <td style={styles.td}>
-                      <span style={{ fontSize: '12px', color: record.importStatus === 'normal' ? 'var(--green)' : 'var(--orange)' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: record.importStatus === 'normal' ? 'var(--green)' : record.importStatus === 'abnormal' ? 'var(--pink)' : 'var(--orange)' }}>
                         {record.importStatus === 'normal' ? '正常' : record.importStatus === 'pending_classify' ? '待分类' : '异常'}
                       </span>
                     </td>
-                    <td style={{ ...styles.td, textAlign: 'right', color: 'var(--muted)' }}>
-                      #{record.sourceRowNo}
-                    </td>
+                    <td style={{ ...styles.td, textAlign: 'right', color: 'var(--muted)' }}>#{record.sourceRowNo}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           {searchResults.length >= 200 && (
-            <div style={styles.truncated}>
-              仅显示前 200 条记录，请使用筛选条件缩小范围
-            </div>
+            <div style={styles.truncated}>仅显示前 200 条，请使用筛选缩小范围</div>
           )}
         </div>
       )}
@@ -272,169 +239,32 @@ export function DataSearchPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  page: {
-    padding: '0',
-  },
-  pageTitle: {
-    fontSize: '20px',
-    fontWeight: 600,
-    color: 'var(--text)',
-    margin: '0 0 16px 0',
-  },
-  filterBar: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(4, minmax(0, 1fr)) auto',
-    gap: '10px',
-    alignItems: 'end',
-    padding: '14px 16px',
-    marginBottom: '14px',
-    border: '1px solid var(--line)',
-    borderRadius: 'var(--radius)',
-    background: 'var(--surface)',
-    boxShadow: 'var(--shadow)',
-  },
-  filterControl: {
-    display: 'grid',
-    gap: '4px',
-  },
-  filterLabel: {
-    fontSize: '11px',
-    fontWeight: 800,
-    color: 'var(--muted)',
-  },
-  filterSelect: {
-    width: '100%',
-    height: '32px',
-    border: '1px solid var(--line)',
-    borderRadius: '5px',
-    background: '#fbfcfb',
-    color: 'var(--text)',
-    fontSize: '12px',
-    fontWeight: 700,
-    padding: '0 8px',
-  },
-  filterInput: {
-    width: '100%',
-    height: '32px',
-    border: '1px solid var(--line)',
-    borderRadius: '5px',
-    background: '#fbfcfb',
-    color: 'var(--text)',
-    fontSize: '12px',
-    fontWeight: 700,
-    padding: '0 8px',
-  },
-  filterActions: {
-    display: 'flex',
-    alignItems: 'flex-end',
-    gap: '6px',
-  },
-  resetBtn: {
-    height: '32px',
-    padding: '0 14px',
-    border: '1px solid var(--pink)',
-    borderRadius: '5px',
-    background: 'var(--pink-2)',
-    color: 'var(--pink)',
-    fontSize: '12px',
-    fontWeight: 800,
-    cursor: 'pointer',
-    whiteSpace: 'nowrap',
-  },
-  searchRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    marginBottom: '12px',
-  },
-  searchInput: {
-    flex: 1,
-    padding: '10px 16px',
-    fontSize: '14px',
-    borderRadius: 'var(--radius)',
-    border: '1px solid var(--line)',
-    outline: 'none',
-    backgroundColor: 'var(--surface)',
-    color: 'var(--text)',
-    transition: 'border-color .15s',
-  },
-  resultCount: {
-    fontSize: '13px',
-    color: 'var(--muted)',
-    whiteSpace: 'nowrap',
-  },
-  sortRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    marginBottom: '16px',
-  },
-  sortLabel: {
-    fontSize: '12px',
-    color: 'var(--muted)',
-  },
-  sortBtn: {
-    padding: '5px 12px',
-    fontSize: '12px',
-    borderRadius: 'var(--radius)',
-    border: '1px solid var(--line)',
-    background: 'var(--surface)',
-    color: 'var(--muted)',
-    cursor: 'pointer',
-    fontWeight: 500,
-    transition: 'all .15s',
-  },
-  sortBtnActive: {
-    backgroundColor: 'var(--green-3)',
-    color: 'var(--green)',
-    borderColor: 'var(--green-2)',
-    fontWeight: 700,
-  },
-  hint: {
-    textAlign: 'center',
-    color: 'var(--muted)',
-    fontSize: '14px',
-    padding: '60px 0',
-  },
-  tableCard: {
-    background: 'var(--surface)',
-    borderRadius: 'var(--radius)',
-    boxShadow: 'var(--shadow)',
-    border: '1px solid var(--line)',
-    padding: '18px 20px',
-  },
-  tableWrap: {
-    overflowX: 'auto',
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    fontSize: '13px',
-  },
-  th: {
-    padding: '8px 10px',
-    textAlign: 'left',
-    fontWeight: 500,
-    color: 'var(--muted)',
-    borderBottom: '2px solid var(--line)',
-    whiteSpace: 'nowrap',
-    fontSize: '12px',
-  },
-  tr: {
-    transition: 'background-color .12s',
-  },
-  td: {
-    padding: '8px 10px',
-    color: 'var(--text)',
-    borderBottom: '1px solid var(--line)',
-    whiteSpace: 'nowrap',
-  },
-  truncated: {
-    textAlign: 'center',
-    color: 'var(--muted)',
-    fontSize: '12px',
-    padding: '12px 0 0',
-  },
+  page: { padding: '0' },
+  pageTitle: { fontSize: '20px', fontWeight: 600, color: 'var(--text)', margin: '0 0 16px 0' },
+  globalContext: { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', marginBottom: '12px', padding: '10px 14px', borderRadius: 'var(--radius)', border: '1px solid var(--green-2)', background: 'var(--green-3)' },
+  contextLabel: { fontSize: '12px', fontWeight: 700, color: 'var(--green)' },
+  contextChip: { fontSize: '11px', fontWeight: 600, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '10px', padding: '2px 8px' },
+  filterBar: { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr)) auto', gap: '10px', alignItems: 'end', padding: '14px 16px', marginBottom: '14px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--surface)', boxShadow: 'var(--shadow)' },
+  filterControl: { display: 'grid', gap: '4px' },
+  filterLabel: { fontSize: '11px', fontWeight: 800, color: 'var(--muted)' },
+  filterSelect: { width: '100%', height: '32px', border: '1px solid var(--line)', borderRadius: '5px', background: '#fbfcfb', color: 'var(--text)', fontSize: '12px', fontWeight: 700, padding: '0 8px' },
+  filterActions: { display: 'flex', alignItems: 'flex-end' },
+  resetBtn: { height: '32px', padding: '0 14px', border: '1px solid var(--pink)', borderRadius: '5px', background: 'var(--pink-2)', color: 'var(--pink)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap' },
+  searchRow: { display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' },
+  searchInput: { flex: 1, padding: '10px 16px', fontSize: '14px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', outline: 'none', backgroundColor: 'var(--surface)', color: 'var(--text)' },
+  resultCount: { fontSize: '13px', color: 'var(--muted)', whiteSpace: 'nowrap' },
+  sortRow: { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' },
+  sortLabel: { fontSize: '12px', color: 'var(--muted)' },
+  sortBtn: { padding: '5px 12px', fontSize: '12px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', background: 'var(--surface)', color: 'var(--muted)', cursor: 'pointer', fontWeight: 500 },
+  sortBtnActive: { backgroundColor: 'var(--green-3)', color: 'var(--green)', border: '1px solid var(--green-2)', fontWeight: 700 },
+  hint: { textAlign: 'center', color: 'var(--muted)', fontSize: '14px', padding: '60px 0' },
+  tableCard: { background: 'var(--surface)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow)', border: '1px solid var(--line)', padding: '18px 20px' },
+  tableWrap: { overflowX: 'auto' },
+  table: { width: '100%', borderCollapse: 'collapse', fontSize: '13px' },
+  th: { padding: '8px 10px', textAlign: 'left', fontWeight: 500, color: 'var(--muted)', borderBottom: '2px solid var(--line)', whiteSpace: 'nowrap', fontSize: '12px' },
+  tr: { transition: 'background-color .12s' },
+  td: { padding: '8px 10px', color: 'var(--text)', borderBottom: '1px solid var(--line)', whiteSpace: 'nowrap' },
+  truncated: { textAlign: 'center', color: 'var(--muted)', fontSize: '12px', padding: '12px 0 0' },
 };
 
 export default DataSearchPage;

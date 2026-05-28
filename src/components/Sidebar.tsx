@@ -10,7 +10,6 @@ const navItems: { label: PageKey; iconType: 'square' | 'circle' | 'bolt' }[] = [
   { label: '总览', iconType: 'square' },
   { label: '数据导入', iconType: 'circle' },
   { label: '费用治理', iconType: 'bolt' },
-  { label: '数据搜索', iconType: 'circle' },
 ];
 
 const toolItems: { label: string; iconType: 'square' | 'circle' }[] = [

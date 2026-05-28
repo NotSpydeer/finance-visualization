@@ -59,6 +59,30 @@ a {
 button {
   font-family: inherit;
   cursor: pointer;
+  outline: none;
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+/* Kill ALL focus/active outlines and rings on every element */
+*, *::before, *::after {
+  -webkit-tap-highlight-color: transparent;
+}
+
+*:focus,
+*:focus-within,
+*:focus-visible {
+  outline: 0 !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  outline-color: transparent !important;
+  -webkit-focus-ring-color: transparent;
+}
+
+*:active {
+  outline: 0 !important;
+  outline-width: 0 !important;
 }
 
 /* Card title bar with colored left bar (pseudo-element) */

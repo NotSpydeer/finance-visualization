@@ -82,36 +82,52 @@ function DrawerContent({
   context: NonNullable<ReturnType<typeof useAppStore.getState>['drawerContext']>;
   currencyMode: 'CNY' | 'USD';
 }) {
+  // Single record detail view (from DepartmentDetail top records)
+  if (context.type === 'detail' && context.topRecords.length === 1) {
+    const record = context.topRecords[0];
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={styles.kpiRow}>
+          <KpiBlock label="金额(CNY)" value={displayMoney(record.amountCNY, currencyMode, DEFAULT_USD_RATE)} color="var(--green)" />
+          <KpiBlock label="原币" value={`${record.currency} ${record.amount.toFixed(2)}`} color="var(--blue)" />
+          <KpiBlock label="汇率" value={String(record.exchangeRate)} color="var(--orange)" />
+        </div>
+
+        <Section title="基本信息">
+          <InfoRow label="交易日期" value={record.date} />
+          <InfoRow label="期间" value={record.periodMonth} />
+          <InfoRow label="主体/公司" value={record.person || '—'} />
+          <InfoRow label="部门/项目" value={record.department || '—'} />
+          <InfoRow label="银行账户" value={record.bankAccount || '—'} />
+        </Section>
+
+        <Section title="分类信息">
+          <InfoRow label="一级分类" value={record.categoryL1 || '—'} />
+          <InfoRow label="二级分类" value={record.categoryL2 || '—'} />
+          <InfoRow label="三级分类" value={record.categoryL3 || '—'} />
+          <InfoRow label="辅助分类" value={record.categoryExtra || '—'} />
+        </Section>
+
+        <Section title="状态信息">
+          <InfoRow label="交易类型" value={record.transactionType === 'expense' ? '费用' : record.transactionType === 'income' ? '收入' : record.transactionType === 'intercompany' ? '往来' : '未分类'} />
+          <InfoRow label="导入状态" value={record.importStatus === 'normal' ? '正常' : record.importStatus === 'pending_classify' ? '待归类' : '异常'} />
+          <InfoRow label="原始行号" value={`#${record.sourceRowNo}`} />
+        </Section>
+      </div>
+    );
+  }
+
+  // Fallback: generic drawer (shouldn't be used now)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {/* 3 KPI blocks */}
       <div style={styles.kpiRow}>
         <KpiBlock label="当前口径金额" value={displayMoney(context.amount, currencyMode, DEFAULT_USD_RATE)} color="var(--green)" />
         <KpiBlock label="命中明细" value={`${context.recordCount} 笔`} color="var(--blue)" />
         <KpiBlock label="最大单笔" value={displayMoney(context.maxSingle, currencyMode, DEFAULT_USD_RATE)} color="var(--orange)" />
       </div>
 
-      {/* Top 分类 */}
-      {context.topCategories.length > 0 && (
-        <Section title="Top 分类构成">
-          {context.topCategories.map((cat) => (
-            <ListRow key={cat.name} name={cat.name} value={displayMoney(cat.amount, currencyMode, DEFAULT_USD_RATE)} />
-          ))}
-        </Section>
-      )}
-
-      {/* Top 部门 */}
-      {context.topDepartments.length > 0 && (
-        <Section title="Top 部门构成">
-          {context.topDepartments.map((dept) => (
-            <ListRow key={dept.name} name={dept.name} value={displayMoney(dept.amount, currencyMode, DEFAULT_USD_RATE)} />
-          ))}
-        </Section>
-      )}
-
-      {/* Top 明细 */}
       {context.topRecords.length > 0 && (
-        <Section title="金额最高明细">
+        <Section title="明细记录">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {context.topRecords.slice(0, 6).map((record) => (
               <div key={record.id} style={styles.recordRow}>
@@ -146,11 +162,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function ListRow({ name, value }: { name: string; value: string }) {
+function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div style={styles.listRow}>
-      <span style={{ color: 'var(--text)', fontSize: '13px' }}>{name}</span>
-      <span style={{ color: 'var(--text)', fontWeight: 600, fontSize: '13px' }}>{value}</span>
+    <div style={styles.infoRow}>
+      <span style={styles.infoLabel}>{label}</span>
+      <span style={styles.infoValue}>{value}</span>
     </div>
   );
 }
@@ -223,11 +239,23 @@ const styles: Record<string, React.CSSProperties> = {
     paddingTop: '4px',
     borderTop: '1px solid var(--line)',
   },
-  listRow: {
+  infoRow: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '5px 0',
+    padding: '6px 0',
+    borderBottom: '1px solid #f0f2f0',
+  },
+  infoLabel: {
+    fontSize: '12px',
+    color: 'var(--muted)',
+    fontWeight: 500,
+  },
+  infoValue: {
+    fontSize: '13px',
+    color: 'var(--text)',
+    fontWeight: 600,
+    textAlign: 'right',
   },
   recordRow: {
     display: 'grid',

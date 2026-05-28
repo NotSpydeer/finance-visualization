@@ -10,11 +10,13 @@ import { useAppStore } from '../state/store';
 import { getDepartmentDetail } from '../data/selectors';
 import { displayMoney } from '../utils/currencyUtils';
 import { DEFAULT_USD_RATE } from '../utils/constants';
+import type { ExpenseRecord } from '../types/expense';
 
 export default function DepartmentDetail() {
   const records = useAppStore((s) => s.records);
   const filter = useAppStore((s) => s.filter);
   const openDrawer = useAppStore((s) => s.openDrawer);
+  const setCurrentPage = useAppStore((s) => s.setCurrentPage);
 
   const detail = useMemo(() => getDepartmentDetail(records, filter), [records, filter]);
   const currencyMode = filter.currencyMode;
@@ -26,18 +28,25 @@ export default function DepartmentDetail() {
   }, [detail.trend]);
 
   const handleOpenDrawer = useCallback(() => {
-    if (!detail.department) return;
+    // Removed - no drawer from this button
+  }, []);
+
+  const handleRecordCountClick = useCallback(() => {
+    setCurrentPage('明细查询');
+  }, [setCurrentPage]);
+
+  const handleRecordClick = useCallback((record: ExpenseRecord) => {
     openDrawer({
-      type: 'department',
-      title: `部门费用详情：${detail.department}`,
-      amount: detail.totalAmount,
-      recordCount: detail.recordCount,
-      maxSingle: detail.topRecords.length > 0 ? detail.topRecords[0].amountCNY : 0,
-      topCategories: [],
-      topDepartments: [],
-      topRecords: detail.topRecords,
+      type: 'detail',
+      title: '明细详情',
+      amount: record.amountCNY,
+      recordCount: 1,
+      maxSingle: record.amountCNY,
+      topCategories: [{ name: record.categoryL1, amount: record.amountCNY }],
+      topDepartments: [{ name: record.department, amount: record.amountCNY }],
+      topRecords: [record],
     });
-  }, [detail, openDrawer]);
+  }, [openDrawer]);
 
   if (!detail.department) {
     return (
@@ -67,8 +76,8 @@ export default function DepartmentDetail() {
           <span style={styles.statLabel}>{summaryTitle}</span>
         </span>
         <span style={styles.statBlock}>
-          <b style={styles.statValue}>{detail.recordCount} 笔</b>
-          <span style={styles.statLabel}>当前筛选命中</span>
+          <b style={{ ...styles.statValue, cursor: 'pointer', color: 'var(--green)' }} onClick={handleRecordCountClick}>{detail.recordCount} 笔</b>
+          <span style={styles.statLabel}>当前筛选命中 <span style={{ color: 'var(--green)', fontSize: '10px' }}>→查看</span></span>
         </span>
         <span style={styles.statBlock}>
           <b style={styles.statValue}>{currencyMode === 'CNY' ? 'RMB' : 'USD'}</b>
@@ -114,7 +123,7 @@ export default function DepartmentDetail() {
         ) : (
           <div style={styles.recordList}>
             {detail.topRecords.map((r) => (
-              <div key={r.id} style={styles.drillItem}>
+              <div key={r.id} style={styles.drillItem} onClick={() => handleRecordClick(r)}>
                 <div style={styles.drillLeft}>
                   <span style={styles.drillName}>{r.categoryL2 || r.categoryL1}{r.categoryL3 ? ` / ${r.categoryL3}` : ''}</span>
                   <small style={styles.drillSub}>{r.date}｜{r.bankAccount}</small>

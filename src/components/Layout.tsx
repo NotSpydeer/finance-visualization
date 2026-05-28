@@ -5,9 +5,10 @@
  * 顶部栏 54px：Tabs (underline active) + round buttons
  */
 
-import { type ReactNode, useState } from 'react';
+import { type ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { FilterTags } from './FilterTags';
+import DetailDrawer from './DetailDrawer';
 import { useAppStore } from '../state/store';
 
 interface LayoutProps {
@@ -15,16 +16,28 @@ interface LayoutProps {
   rightPanel?: ReactNode;
 }
 
-const topTabs = ['总览', '报表', '费用实验室', '数据质量'];
+const topTabs = ['总览', '明细查询'];
 
 export function Layout({ children, rightPanel }: LayoutProps) {
-  const [activeTab, setActiveTab] = useState('总览');
+  const currentPage = useAppStore((s) => s.currentPage);
+  const setCurrentPage = useAppStore((s) => s.setCurrentPage);
   const filterHistory = useAppStore((s) => s.filterHistory);
   const filterFuture = useAppStore((s) => s.filterFuture);
   const undoFilter = useAppStore((s) => s.undoFilter);
   const redoFilter = useAppStore((s) => s.redoFilter);
   const canUndo = filterHistory.length > 0;
   const canRedo = filterFuture.length > 0;
+
+  // Map top tab to active state
+  const activeTab = currentPage === '明细查询' ? '明细查询' : '总览';
+
+  const handleTabClick = (tab: string) => {
+    if (tab === '明细查询') {
+      setCurrentPage('明细查询');
+    } else {
+      setCurrentPage('总览');
+    }
+  };
 
   const gridStyle = {
     ...styles.grid,
@@ -48,7 +61,7 @@ export function Layout({ children, rightPanel }: LayoutProps) {
                   ...styles.tab,
                   ...(tab === activeTab ? styles.tabActive : {}),
                 }}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => handleTabClick(tab)}
               >
                 {tab}
               </div>
@@ -95,21 +108,21 @@ export function Layout({ children, rightPanel }: LayoutProps) {
         </aside>
       )}
 
-      {/* Floating undo button */}
-      {canUndo && (
+      {/* Floating filter tags + undo button */}
+      <div style={styles.floatingArea}>
+        <FilterTags />
         <button
           onClick={undoFilter}
-          style={styles.floatingUndo}
+          style={{ ...styles.floatingUndo, ...(canUndo ? {} : { opacity: 0.3, cursor: 'default' }) }}
           title="回退上一步 (Ctrl+Z)"
+          disabled={!canUndo}
         >
-          ←
+          ◀
         </button>
-      )}
-
-      {/* Floating filter tags */}
-      <div style={styles.floatingFilters}>
-        <FilterTags />
       </div>
+
+      {/* Detail Drawer (global) */}
+      <DetailDrawer />
     </div>
   );
 }
@@ -157,7 +170,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   tabActive: {
     color: 'var(--text)',
-    borderColor: 'var(--text)',
+    borderBottom: '2px solid var(--text)',
   },
   topRight: {
     display: 'flex',
@@ -212,38 +225,36 @@ const styles: Record<string, React.CSSProperties> = {
     overflow: 'auto',
     padding: '14px',
   },
-  floatingUndo: {
+  floatingArea: {
     position: 'fixed',
-    left: '156px',
+    left: '14px',
     top: '50%',
     transform: 'translateY(-50%)',
-    zIndex: 100,
-    width: '38px',
-    height: '38px',
+    zIndex: 99,
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: '8px',
+    maxWidth: '200px',
+    pointerEvents: 'auto',
+  },
+  floatingUndo: {
+    width: '34px',
+    height: '34px',
+    minWidth: '34px',
     borderRadius: '50%',
     border: '2px solid var(--green-2)',
     background: 'var(--green-3)',
-    boxShadow: '0 4px 16px rgba(37, 125, 96, .2)',
+    boxShadow: '0 4px 12px rgba(37, 125, 96, .2)',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '20px',
+    fontSize: '16px',
     color: 'var(--green)',
     fontWeight: 900,
-  },
-  floatingFilters: {
-    position: 'fixed',
-    left: '140px',
-    top: 'calc(50% + 28px)',
-    zIndex: 99,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-    maxWidth: '186px',
-    maxHeight: '30vh',
-    overflowY: 'auto',
-    pointerEvents: 'auto',
+    padding: 0,
+    flexShrink: 0,
   },
 };
 

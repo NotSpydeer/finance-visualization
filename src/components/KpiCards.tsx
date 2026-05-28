@@ -6,10 +6,9 @@
 
 import { useMemo } from 'react';
 import { useAppStore } from '../state/store';
-import { getKpis, filterRecords } from '../data/selectors';
+import { getKpis } from '../data/selectors';
 import { displayMoney } from '../utils/currencyUtils';
 import { DEFAULT_USD_RATE } from '../utils/constants';
-import type { DrawerContext } from '../types/chart';
 
 /** 卡片配置项 */
 interface KpiCardConfig {
@@ -33,38 +32,9 @@ export function KpiCards() {
   const records = useAppStore((s) => s.records);
   const filter = useAppStore((s) => s.filter);
   const updateFilter = useAppStore((s) => s.updateFilter);
-  const openDrawer = useAppStore((s) => s.openDrawer);
   const setCurrentPage = useAppStore((s) => s.setCurrentPage);
 
   const kpis = useMemo(() => getKpis(records, filter), [records, filter]);
-
-  const buildDrawerContext = (title: string, amount: number): DrawerContext => {
-    const filtered = filterRecords(records, filter);
-    const recordCount = filtered.length;
-    const maxSingle = filtered.reduce((max, r) => Math.max(max, r.amountCNY), 0);
-
-    const categoryMap = new Map<string, number>();
-    for (const r of filtered) {
-      categoryMap.set(r.categoryL1, (categoryMap.get(r.categoryL1) ?? 0) + r.amountCNY);
-    }
-    const topCategories = Array.from(categoryMap.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([name, amt]) => ({ name, amount: amt }));
-
-    const deptMap = new Map<string, number>();
-    for (const r of filtered) {
-      deptMap.set(r.department, (deptMap.get(r.department) ?? 0) + r.amountCNY);
-    }
-    const topDepartments = Array.from(deptMap.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([name, amt]) => ({ name, amount: amt }));
-
-    const topRecords = [...filtered].sort((a, b) => b.amountCNY - a.amountCNY).slice(0, 5);
-
-    return { type: 'kpi', title, amount, recordCount, maxSingle, topCategories, topDepartments, topRecords };
-  };
 
   const handleCardClick = (key: string) => {
     switch (key) {
@@ -75,14 +45,11 @@ export function KpiCards() {
       case 'peakAmount':
         if (kpis.peakMonth) {
           updateFilter({ period: kpis.peakMonth });
-          openDrawer(buildDrawerContext(`峰值月份: ${kpis.peakMonth}`, kpis.peakAmount));
         }
         break;
       case 'confirmedExpense':
-        openDrawer(buildDrawerContext('确认费用支出', kpis.confirmedExpense));
         break;
       case 'rawAmount':
-        openDrawer(buildDrawerContext('原始交易金额', kpis.rawAmount));
         break;
     }
   };

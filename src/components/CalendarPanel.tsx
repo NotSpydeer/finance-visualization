@@ -128,9 +128,17 @@ export function CalendarPanel() {
       // Toggle off: go back to month filter
       const monthPeriod = filter.date.slice(0, 7);
       updateFilter({ period: monthPeriod, date: '', dateStart: '', dateEnd: '' });
+    } else {
+      // Auto-select: pick the 1st day of current display month (or today if in current month)
+      const now = new Date();
+      let day = 1;
+      if (displayYear === now.getFullYear() && displayMonth === now.getMonth() + 1) {
+        day = now.getDate(); // select today if viewing current month
+      }
+      const dateStr = `${displayYear}-${displayMonth.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+      updateFilter({ date: dateStr, period: '', dateStart: '', dateEnd: '' });
     }
-    // Otherwise: user must click a day in the grid
-  }, [isDayFilterActive, filter.date, updateFilter]);
+  }, [isDayFilterActive, filter.date, updateFilter, displayYear, displayMonth]);
 
   const handleGranRange = useCallback(() => {
     if (rangeMode) {
@@ -253,25 +261,29 @@ export function CalendarPanel() {
       <div style={styles.granRow}>
         <button
           style={{ ...styles.granBtn, ...(isYearFilterActive ? styles.granBtnActive : {}) }}
-          onClick={handleGranYear}
+          onClick={(e) => { (e.currentTarget as HTMLElement).blur(); handleGranYear(); }}
+          onMouseDown={(e) => e.preventDefault()}
         >
           年
         </button>
         <button
           style={{ ...styles.granBtn, ...(isMonthFilterActive ? styles.granBtnActive : {}) }}
-          onClick={handleGranMonth}
+          onClick={(e) => { (e.currentTarget as HTMLElement).blur(); handleGranMonth(); }}
+          onMouseDown={(e) => e.preventDefault()}
         >
           月
         </button>
         <button
           style={{ ...styles.granBtn, ...(isDayFilterActive ? styles.granBtnActive : {}) }}
-          onClick={handleGranDay}
+          onClick={(e) => { (e.currentTarget as HTMLElement).blur(); handleGranDay(); }}
+          onMouseDown={(e) => e.preventDefault()}
         >
           日
         </button>
         <button
           style={{ ...styles.granBtn, ...((isRangeFilterActive || rangeMode) ? styles.granBtnActive : {}) }}
-          onClick={handleGranRange}
+          onClick={(e) => { (e.currentTarget as HTMLElement).blur(); handleGranRange(); }}
+          onMouseDown={(e) => e.preventDefault()}
         >
           区间
         </button>
@@ -285,7 +297,8 @@ export function CalendarPanel() {
             <button
               key={y}
               style={{ ...styles.yearBtn, ...(isActive ? styles.yearBtnActive : displayYear === y ? styles.yearBtnCurrent : {}) }}
-              onClick={() => handleYearSelect(y)}
+              onClick={(e) => { (e.currentTarget as HTMLElement).blur(); handleYearSelect(y); }}
+              onMouseDown={(e) => e.preventDefault()}
             >
               {y}
             </button>
@@ -298,13 +311,13 @@ export function CalendarPanel() {
         {MONTH_LABELS.map((label, idx) => {
           const month = idx + 1;
           const monthPeriod = `${displayYear}-${label}`;
-          // Only highlight if filter.period is exactly YYYY-MM matching this month
           const isActive = isMonthFilterActive && filter.period === monthPeriod;
           return (
             <button
               key={label}
               style={{ ...styles.monthBtn, ...(isActive ? styles.monthBtnActive : displayMonth === month && !isYearFilterActive ? styles.monthBtnCurrent : {}) }}
-              onClick={() => handleMonthSelect(idx)}
+              onClick={(e) => { (e.currentTarget as HTMLElement).blur(); handleMonthSelect(idx); }}
+              onMouseDown={(e) => e.preventDefault()}
             >
               {label}月
             </button>
@@ -314,12 +327,14 @@ export function CalendarPanel() {
 
       {/* Day grid navigation */}
       <div style={styles.navRow}>
-        <button style={styles.navBtn} onClick={() => {
+        <button style={styles.navBtn} onMouseDown={(e) => e.preventDefault()} onClick={(e) => {
+          (e.currentTarget as HTMLElement).blur();
           if (displayMonth === 1) { setDisplayYear(displayYear - 1); setDisplayMonth(12); }
           else setDisplayMonth(displayMonth - 1);
         }}>◀</button>
         <span style={styles.navTitle}>{displayYear}年{displayMonth.toString().padStart(2, '0')}月</span>
-        <button style={styles.navBtn} onClick={() => {
+        <button style={styles.navBtn} onMouseDown={(e) => e.preventDefault()} onClick={(e) => {
+          (e.currentTarget as HTMLElement).blur();
           if (displayMonth === 12) { setDisplayYear(displayYear + 1); setDisplayMonth(1); }
           else setDisplayMonth(displayMonth + 1);
         }}>▶</button>
@@ -345,9 +360,9 @@ export function CalendarPanel() {
             <div
               key={`d-${day}`}
               style={cellStyle}
-              onClick={() => handleDayClick(day)}
+              onClick={(e) => { (e.currentTarget as HTMLElement).blur(); handleDayClick(day); }}
               role="button"
-              tabIndex={0}
+              tabIndex={-1}
             >
               {day}
             </div>
@@ -393,7 +408,7 @@ export function CalendarPanel() {
 
       {/* Clear time filter button */}
       {hasAnyTimeFilter && (
-        <button style={styles.clearBtn} onClick={handleClearTime}>
+        <button style={styles.clearBtn} onClick={(e) => { (e.currentTarget as HTMLElement).blur(); handleClearTime(); }} onMouseDown={(e) => e.preventDefault()}>
           清除时间筛选
         </button>
       )}
@@ -440,10 +455,11 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 800,
     transition: 'all .15s',
     padding: 0,
+    outline: 'none',
   },
   granBtnActive: {
     backgroundColor: 'var(--green)',
-    borderColor: 'var(--green)',
+    border: '1px solid var(--green)',
     color: '#ffffff',
   },
   yearRow: {
@@ -461,14 +477,15 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--text)',
     fontWeight: 800,
     transition: 'all .12s',
+    outline: 'none',
   },
   yearBtnActive: {
     backgroundColor: 'var(--green)',
-    borderColor: 'var(--green)',
+    border: '1px solid var(--green)',
     color: '#ffffff',
   },
   yearBtnCurrent: {
-    borderColor: 'var(--green-2)',
+    border: '1px solid var(--green-2)',
     backgroundColor: 'var(--green-3)',
   },
   monthGrid: {
@@ -488,14 +505,15 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 800,
     transition: 'all .12s',
     padding: 0,
+    outline: 'none',
   },
   monthBtnActive: {
     backgroundColor: 'var(--green)',
-    borderColor: 'var(--green)',
+    border: '1px solid var(--green)',
     color: '#ffffff',
   },
   monthBtnCurrent: {
-    borderColor: 'var(--green-2)',
+    border: '1px solid var(--green-2)',
     backgroundColor: 'var(--green-3)',
   },
   navRow: {
@@ -512,6 +530,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--muted)',
     padding: '4px 8px',
     borderRadius: '4px',
+    outline: 'none',
   },
   navTitle: {
     fontSize: '13px',
@@ -544,6 +563,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     margin: '0 auto',
+    outline: 'none',
   },
   dayCellClickable: {
     cursor: 'pointer',
@@ -612,6 +632,7 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     fontWeight: 800,
     padding: 0,
+    outline: 'none',
   },
   rangeCancelBtn: {
     flex: 1,
@@ -624,6 +645,7 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     fontWeight: 800,
     padding: 0,
+    outline: 'none',
   },
   clearBtn: {
     width: '100%',
@@ -636,6 +658,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--pink)',
     textAlign: 'center',
     fontWeight: 500,
+    outline: 'none',
   },
 };
 

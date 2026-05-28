@@ -283,7 +283,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   grainBtnActive: {
     backgroundColor: 'var(--green)',
-    borderColor: 'var(--green)',
+    border: '1px solid var(--green)',
     color: '#ffffff',
   },
 };

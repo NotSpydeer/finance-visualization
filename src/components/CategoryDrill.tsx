@@ -9,7 +9,6 @@ import { useAppStore } from '../state/store';
 import { filterRecords } from '../data/selectors';
 import { displayMoney } from '../utils/currencyUtils';
 import { DEFAULT_USD_RATE } from '../utils/constants';
-import type { DrawerContext } from '../types/chart';
 
 interface CategoryItem {
   name: string;
@@ -20,7 +19,6 @@ export function CategoryDrill() {
   const records = useAppStore((s) => s.records);
   const filter = useAppStore((s) => s.filter);
   const updateFilter = useAppStore((s) => s.updateFilter);
-  const openDrawer = useAppStore((s) => s.openDrawer);
 
   const currentLevel = useMemo(() => {
     if (!filter.categoryL1) return 1;
@@ -63,23 +61,6 @@ export function CategoryDrill() {
       .sort((a, b) => b.amount - a.amount);
   }, [records, filter, currentLevel]);
 
-  const buildDrawerContext = (categoryName: string, amount: number): DrawerContext => {
-    const filtered = filterRecords(records, filter);
-    const recordCount = filtered.length;
-    const maxSingle = filtered.reduce((max, r) => Math.max(max, r.amountCNY), 0);
-
-    const categoryMap = new Map<string, number>();
-    for (const r of filtered) categoryMap.set(r.categoryL1, (categoryMap.get(r.categoryL1) ?? 0) + r.amountCNY);
-    const topCategories = Array.from(categoryMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, amt]) => ({ name, amount: amt }));
-
-    const deptMap = new Map<string, number>();
-    for (const r of filtered) deptMap.set(r.department, (deptMap.get(r.department) ?? 0) + r.amountCNY);
-    const topDepartments = Array.from(deptMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, amt]) => ({ name, amount: amt }));
-
-    const topRecords = [...filtered].sort((a, b) => b.amountCNY - a.amountCNY).slice(0, 6);
-    return { type: 'category', title: categoryName, amount, recordCount, maxSingle, topCategories, topDepartments, topRecords };
-  };
-
   const handleItemClick = (item: CategoryItem) => {
     if (currentLevel === 1) {
       updateFilter({ categoryL1: item.name, categoryL2: '', categoryL3: '' });
@@ -92,7 +73,6 @@ export function CategoryDrill() {
         return;
       }
       updateFilter({ categoryL3: item.name });
-      openDrawer(buildDrawerContext(item.name, item.amount));
     }
   };
 
@@ -101,8 +81,17 @@ export function CategoryDrill() {
     else if (currentLevel === 2) updateFilter({ categoryL1: '', categoryL2: '', categoryL3: '' });
   };
 
-  const getHint = () => {
+  const getHint = (itemName: string) => {
     if (currentLevel === 3) return '点击锁定三级分类';
+    // Check if next level exists
+    if (currentLevel === 1) {
+      const hasL2 = records.some((r) => r.categoryL1 === itemName && r.categoryL2);
+      return hasL2 ? '点击展开下一级' : '没有下一级';
+    }
+    if (currentLevel === 2) {
+      const hasL3 = records.some((r) => r.categoryL1 === filter.categoryL1 && r.categoryL2 === itemName && r.categoryL3);
+      return hasL3 ? '点击展开下一级' : '没有下一级';
+    }
     return '点击展开下一级';
   };
 
@@ -148,7 +137,7 @@ export function CategoryDrill() {
             >
               <div style={styles.itemLeft}>
                 <span style={styles.itemName}>{item.name}</span>
-                <span style={styles.itemHint}>{isActive && currentLevel === 3 ? '再次点击取消选中' : getHint()}</span>
+                <span style={styles.itemHint}>{isActive && currentLevel === 3 ? '再次点击取消选中' : getHint(item.name)}</span>
               </div>
               <span style={styles.itemAmount}>
                 {displayMoney(item.amount, filter.currencyMode, DEFAULT_USD_RATE)}
@@ -168,6 +157,9 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: 'var(--shadow)',
     border: '1px solid var(--line)',
     padding: '18px 20px',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
   },
   header: {
     display: 'flex',
@@ -210,6 +202,8 @@ const styles: Record<string, React.CSSProperties> = {
   list: {
     display: 'grid',
     gap: '8px',
+    maxHeight: '320px',
+    overflowY: 'auto',
   },
   listItem: {
     display: 'grid',
@@ -222,9 +216,10 @@ const styles: Record<string, React.CSSProperties> = {
     transition: '.18s ease',
     backgroundColor: '#fbfcfb',
     border: '1px solid var(--line)',
+    outline: 'none',
   },
   listItemActive: {
-    borderColor: '#c7ded5',
+    border: '1px solid #c7ded5',
     backgroundColor: 'var(--green-3)',
     color: 'var(--green)',
   },

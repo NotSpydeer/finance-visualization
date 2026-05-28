@@ -311,7 +311,7 @@ const styles: Record<string, React.CSSProperties> = {
     marginTop: '1px',
   },
   checkboxDone: {
-    borderColor: 'var(--green)',
+    border: '2px solid var(--green)',
     background: 'var(--green)',
     color: '#fff',
   },

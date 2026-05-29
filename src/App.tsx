@@ -28,6 +28,7 @@ import { TimelinePanel } from './components/TimelinePanel';
 import { DataImportPage } from './components/pages/DataImportPage';
 import { ExpenseGovernancePage } from './components/pages/ExpenseGovernancePage';
 import { DataSearchPage } from './components/pages/DataSearchPage';
+import { DataStatsPage } from './components/pages/DataStatsPage';
 import { registerFinanceTheme } from './theme/echarts';
 import { hasCachedData, loadCachedData, clearCachedData } from './state/persistence';
 import './index.css';
@@ -187,6 +188,15 @@ function App() {
     return (
       <Layout>
         <DataSearchPage />
+      </Layout>
+    );
+  }
+
+  // 数据统计 page
+  if (currentPage === '数据统计') {
+    return (
+      <Layout>
+        <DataStatsPage />
       </Layout>
     );
   }

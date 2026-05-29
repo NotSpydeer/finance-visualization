@@ -113,6 +113,11 @@ export function TrendOverview() {
     const xLabels = trendData.map((d) => d.label);
     const values = trendData.map((d) => d.amount);
 
+    // Compute cumulative values
+    const cumulativeValues: number[] = [];
+    let cumSum = 0;
+    for (const v of values) { cumSum += v; cumulativeValues.push(cumSum); }
+
     // Highlight selected day in orange when filter.date is set
     const barData = values.map((val, idx) => {
       if (filter.date && activeGrain === 'day' && trendData[idx].bucket === filter.date) {
@@ -134,15 +139,19 @@ export function TrendOverview() {
     });
 
     return {
-      grid: { top: 30, right: 20, bottom: 30, left: 56, containLabel: false },
+      grid: { top: 30, right: 50, bottom: 30, left: 56, containLabel: false },
       tooltip: {
         trigger: 'axis' as const,
         axisPointer: { type: 'shadow' as const },
         formatter: (params: unknown) => {
-          const list = params as { name: string; value: number }[];
+          const list = params as { seriesName: string; name: string; value: number }[];
           if (!Array.isArray(list) || list.length === 0) return '';
-          const item = list[0];
-          return `${item.name}｜费用 ${(item.value / 10000).toFixed(1)}万`;
+          const name = list[0].name;
+          const lines = list.map((item) => {
+            const label = item.seriesName || '费用';
+            return `${label}：${(item.value / 10000).toFixed(1)}万`;
+          });
+          return `${name}<br/>${lines.join('<br/>')}`;
         },
       },
       xAxis: {
@@ -152,19 +161,25 @@ export function TrendOverview() {
         axisLine: { lineStyle: { color: 'var(--line)' } },
         axisLabel: { fontSize: 11, color: '#737b73' },
       },
-      yAxis: {
-        type: 'value' as const,
-        axisLabel: {
-          fontSize: 11,
-          color: '#737b73',
-          formatter: (val: number) => `${(val / 10000).toFixed(0)}万`,
+      yAxis: [
+        {
+          type: 'value' as const,
+          axisLabel: { fontSize: 11, color: '#737b73', formatter: (val: number) => `${(val / 10000).toFixed(0)}万` },
+          splitLine: { lineStyle: { color: '#e8eee9', type: 'dashed' as const } },
+          axisLine: { show: false },
+          axisTick: { show: false },
         },
-        splitLine: { lineStyle: { color: '#e8eee9', type: 'dashed' as const } },
-        axisLine: { show: false },
-        axisTick: { show: false },
-      },
+        {
+          type: 'value' as const,
+          axisLabel: { fontSize: 10, color: '#999', formatter: (val: number) => `${(val / 10000).toFixed(0)}万` },
+          splitLine: { show: false },
+          axisLine: { show: false },
+          axisTick: { show: false },
+        },
+      ],
       series: [
         {
+          name: '当期费用',
           type: 'bar' as const,
           data: barData,
           barMaxWidth: 28,
@@ -203,13 +218,26 @@ export function TrendOverview() {
           },
         },
         {
+          name: '趋势',
           type: 'line' as const,
           data: values,
           smooth: true,
           symbol: 'circle',
           symbolSize: 5,
-          lineStyle: { color: '#257d60', width: 3.2, shadowColor: 'rgba(37,125,96,.18)', shadowBlur: 8, shadowOffsetY: 7 },
+          lineStyle: { color: '#257d60', width: 3, shadowColor: 'rgba(37,125,96,.18)', shadowBlur: 8, shadowOffsetY: 7 },
           itemStyle: { color: '#257d60' },
+        },
+        {
+          name: '累计',
+          type: 'line' as const,
+          yAxisIndex: 1,
+          data: cumulativeValues,
+          smooth: true,
+          symbol: 'circle',
+          symbolSize: 5,
+          showSymbol: true,
+          lineStyle: { color: 'rgba(180,180,180,.5)', width: 3 },
+          itemStyle: { color: 'rgba(180,180,180,.6)' },
         },
       ],
     };

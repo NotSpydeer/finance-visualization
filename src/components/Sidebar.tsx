@@ -10,12 +10,9 @@ const navItems: { label: PageKey; iconType: 'square' | 'circle' | 'bolt' }[] = [
   { label: '总览', iconType: 'square' },
   { label: '数据导入', iconType: 'circle' },
   { label: '费用治理', iconType: 'bolt' },
+  { label: '数据统计', iconType: 'square' },
 ];
 
-const toolItems: { label: string; iconType: 'square' | 'circle' }[] = [
-  { label: '帮助中心', iconType: 'circle' },
-  { label: '退出', iconType: 'square' },
-];
 
 export function Sidebar() {
   const currentPage = useAppStore((s) => s.currentPage);
@@ -63,22 +60,6 @@ export function Sidebar() {
 
       {/* 底部工具区 */}
       <div style={styles.utility}>
-        <div style={styles.modeRow}>
-          <span>浅色模式</span>
-          <span style={styles.toggle}><i style={styles.toggleDot} /></span>
-        </div>
-        {toolItems.map((item) => (
-          <button
-            key={item.label}
-            style={styles.navItem}
-          >
-            <span style={{
-              ...styles.icon,
-              ...(item.iconType === 'circle' ? styles.iconCircle : {}),
-            }} />
-            <span>{item.label}</span>
-          </button>
-        ))}
       </div>
     </aside>
   );
@@ -181,6 +162,7 @@ const styles: Record<string, React.CSSProperties> = {
     margin: '0 4px 10px',
     color: 'var(--muted)',
     fontSize: '12px',
+    cursor: 'pointer',
   },
   toggle: {
     display: 'inline-block',

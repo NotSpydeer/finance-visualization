@@ -48,13 +48,13 @@ export default function DepartmentDetail() {
     });
   }, [openDrawer]);
 
-  if (!detail.department) {
+  if (detail.recordCount === 0) {
     return (
       <div style={styles.card} role="region" aria-label="部门费用详情">
         <div style={styles.header}>
-          <h2 className="card-title-bar blue">部门费用详情</h2>
+          <h2 className="card-title-bar blue">费用详情</h2>
         </div>
-        <div style={styles.empty}>当前筛选条件下暂无部门数据</div>
+        <div style={styles.empty}>当前筛选条件下暂无数据</div>
       </div>
     );
   }
@@ -65,7 +65,7 @@ export default function DepartmentDetail() {
   return (
     <div style={styles.card} role="region" aria-label="部门费用详情">
       <div style={styles.header}>
-        <h2 className="card-title-bar blue">部门费用详情</h2>
+        <h2 className="card-title-bar blue">{filter.department ? '部门费用详情' : '费用详情'}</h2>
         <button style={styles.drawerBtn} onClick={handleOpenDrawer}>查看原因</button>
       </div>
 

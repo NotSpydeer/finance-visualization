@@ -341,8 +341,8 @@ export function getDepartmentRanking(
 
 /**
  * 获取部门费用详情
- * - 如果 state.department 为空，使用排行第一名的部门
- * - 获取该部门在当前筛选下的总额、条数
+ * - 如果 state.department 为空，显示所有部门的汇总数据（总费用详情）
+ * - 如果 state.department 有值，显示该部门的详情
  * - 近 6 个 periodMonth 的趋势
  * - 金额最高的 4 条明细
  */
@@ -350,30 +350,20 @@ export function getDepartmentDetail(
   records: ExpenseRecord[],
   state: FilterState
 ): DepartmentDetail {
-  // 确定目标部门
-  let targetDepartment = state.department;
-  if (!targetDepartment) {
-    const ranking = getDepartmentRanking(records, state);
-    targetDepartment = ranking.length > 0 ? ranking[0].department : '';
-  }
+  const targetDepartment = state.department;
 
-  // 空部门则返回空详情
-  if (!targetDepartment) {
+  // If no department selected, show total across all departments
+  const filtered = filterRecords(records, state);
+
+  if (filtered.length === 0) {
     return {
-      department: '',
+      department: targetDepartment || '全部部门',
       totalAmount: 0,
       recordCount: 0,
       trend: [],
       topRecords: [],
     };
   }
-
-  // 使用目标部门 + 其他所有筛选条件
-  const deptState: FilterState = {
-    ...state,
-    department: targetDepartment,
-  };
-  const filtered = filterRecords(records, deptState);
 
   const totalAmount = filtered.reduce((sum, r) => sum + r.amountCNY, 0);
   const recordCount = filtered.length;
